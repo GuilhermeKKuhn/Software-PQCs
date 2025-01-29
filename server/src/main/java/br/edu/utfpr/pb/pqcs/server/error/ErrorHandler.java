@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.error;
+package br.edu.utfpr.pb.pqcs.server.error;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;

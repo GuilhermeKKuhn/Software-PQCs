@@ -1,9 +1,9 @@
-package br.edu.utfpr.pb.pw25s.server.controller;
+package br.edu.utfpr.pb.pqcs.server.controller;
 
-import br.edu.utfpr.pb.pw25s.server.dto.UserDTO;
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.service.UserService;
-import br.edu.utfpr.pb.pw25s.server.shared.GenericResponse;
+import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.service.UserService;
+import br.edu.utfpr.pb.pqcs.server.shared.GenericResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

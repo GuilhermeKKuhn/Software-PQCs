@@ -1,8 +1,8 @@
-package br.edu.utfpr.pb.pw25s.server.service.impl;
+package br.edu.utfpr.pb.pqcs.server.service.impl;
 
-import br.edu.utfpr.pb.pw25s.server.model.Category;
-import br.edu.utfpr.pb.pw25s.server.repository.CategoryRepository;
-import br.edu.utfpr.pb.pw25s.server.service.ICategoryService;
+import br.edu.utfpr.pb.pqcs.server.model.Category;
+import br.edu.utfpr.pb.pqcs.server.repository.CategoryRepository;
+import br.edu.utfpr.pb.pqcs.server.service.ICategoryService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.dto;
+package br.edu.utfpr.pb.pqcs.server.dto;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.shared;
+package br.edu.utfpr.pb.pqcs.server.shared;
 
 import lombok.Data;
 

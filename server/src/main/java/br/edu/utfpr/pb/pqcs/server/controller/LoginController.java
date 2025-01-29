@@ -1,8 +1,8 @@
-package br.edu.utfpr.pb.pw25s.server.controller;
+package br.edu.utfpr.pb.pqcs.server.controller;
 
-import br.edu.utfpr.pb.pw25s.server.dto.UserDTO;
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.service.AuthService;
+import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

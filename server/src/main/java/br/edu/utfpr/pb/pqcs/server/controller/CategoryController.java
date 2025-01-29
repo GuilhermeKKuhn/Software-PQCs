@@ -1,9 +1,9 @@
-package br.edu.utfpr.pb.pw25s.server.controller;
+package br.edu.utfpr.pb.pqcs.server.controller;
 
-import br.edu.utfpr.pb.pw25s.server.dto.CategoryDTO;
-import br.edu.utfpr.pb.pw25s.server.model.Category;
-import br.edu.utfpr.pb.pw25s.server.service.ICategoryService;
-import br.edu.utfpr.pb.pw25s.server.service.ICrudService;
+import br.edu.utfpr.pb.pqcs.server.dto.CategoryDTO;
+import br.edu.utfpr.pb.pqcs.server.model.Category;
+import br.edu.utfpr.pb.pqcs.server.service.ICategoryService;
+import br.edu.utfpr.pb.pqcs.server.service.ICrudService;
 import org.modelmapper.ModelMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

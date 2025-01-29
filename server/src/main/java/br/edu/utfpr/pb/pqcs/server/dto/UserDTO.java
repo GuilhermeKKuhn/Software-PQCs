@@ -1,7 +1,7 @@
-package br.edu.utfpr.pb.pw25s.server.dto;
+package br.edu.utfpr.pb.pqcs.server.dto;
 
-import br.edu.utfpr.pb.pw25s.server.annotation.UniqueUsername;
-import br.edu.utfpr.pb.pw25s.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.annotation.UniqueUsername;
+import br.edu.utfpr.pb.pqcs.server.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

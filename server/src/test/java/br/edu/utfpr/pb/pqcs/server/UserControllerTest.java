@@ -1,9 +1,9 @@
-package br.edu.utfpr.pb.pw25s.server;
+package br.edu.utfpr.pb.pqcs.server;
 
-import br.edu.utfpr.pb.pw25s.server.error.ApiError;
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.repository.UserRepository;
-import br.edu.utfpr.pb.pw25s.server.shared.GenericResponse;
+import br.edu.utfpr.pb.pqcs.server.error.ApiError;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.repository.UserRepository;
+import br.edu.utfpr.pb.pqcs.server.shared.GenericResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

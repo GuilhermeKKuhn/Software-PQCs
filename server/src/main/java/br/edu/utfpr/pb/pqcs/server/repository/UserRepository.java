@@ -1,6 +1,6 @@
-package br.edu.utfpr.pb.pw25s.server.repository;
+package br.edu.utfpr.pb.pqcs.server.repository;
 
-import br.edu.utfpr.pb.pw25s.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {

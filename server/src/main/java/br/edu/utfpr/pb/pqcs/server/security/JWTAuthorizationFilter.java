@@ -1,7 +1,7 @@
-package br.edu.utfpr.pb.pw25s.server.security;
+package br.edu.utfpr.pb.pqcs.server.security;
 
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.service.AuthService;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -1,7 +1,7 @@
-package br.edu.utfpr.pb.pw25s.server.service;
+package br.edu.utfpr.pb.pqcs.server.service;
 
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.repository.UserRepository;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

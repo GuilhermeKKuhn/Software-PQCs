@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.security;
+package br.edu.utfpr.pb.pqcs.server.security;
 
 public class SecurityConstants {
     public static final String SECRET = "utfpr"; // secret utilizado para gerar o token

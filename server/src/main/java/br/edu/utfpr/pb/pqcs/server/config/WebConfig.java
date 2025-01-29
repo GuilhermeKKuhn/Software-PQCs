@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.config;
+package br.edu.utfpr.pb.pqcs.server.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

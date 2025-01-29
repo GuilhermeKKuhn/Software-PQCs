@@ -18,14 +18,14 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:h2:mem:pw25s-dev
+    url: jdbc:h2:mem:PQCs-dev
 ---
 spring:
   config:
     activate:
       on-profile: dev-postgres
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/pw25s
+    url: jdbc:postgresql://127.0.0.1:5432/PQCs
     username: postgres
     password: postgres
   jpa:

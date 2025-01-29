@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.model;
+package br.edu.utfpr.pb.pqcs.server.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

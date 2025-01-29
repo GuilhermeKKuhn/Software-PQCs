@@ -1,6 +1,6 @@
-package br.edu.utfpr.pb.pw25s.server.model;
+package br.edu.utfpr.pb.pqcs.server.model;
 
-import br.edu.utfpr.pb.pw25s.server.annotation.UniqueUsername;
+import br.edu.utfpr.pb.pqcs.server.annotation.UniqueUsername;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

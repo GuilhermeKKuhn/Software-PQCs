@@ -1,6 +1,6 @@
-package br.edu.utfpr.pb.pw25s.server.service;
+package br.edu.utfpr.pb.pqcs.server.service;
 
-import br.edu.utfpr.pb.pw25s.server.model.Product;
+import br.edu.utfpr.pb.pqcs.server.model.Product;
 
 public interface IProductService extends ICrudService<Product, Long> {
 }

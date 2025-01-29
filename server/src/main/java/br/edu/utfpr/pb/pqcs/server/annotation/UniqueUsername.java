@@ -1,6 +1,7 @@
-package br.edu.utfpr.pb.pw25s.server.annotation;
+package br.edu.utfpr.pb.pqcs.server.annotation;
 
-import br.edu.utfpr.pb.pw25s.server.validation.UniqueUsernameValidator;
+
+import br.edu.utfpr.pb.pqcs.server.validation.UniqueUsernameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

@@ -1,11 +1,11 @@
-package br.edu.utfpr.pb.pw25s.server;
+package br.edu.utfpr.pb.pqcs.server;
 
-import br.edu.utfpr.pb.pw25s.server.dto.UserDTO;
-import br.edu.utfpr.pb.pw25s.server.model.User;
-import br.edu.utfpr.pb.pw25s.server.repository.UserRepository;
-import br.edu.utfpr.pb.pw25s.server.security.SecurityConstants;
-import br.edu.utfpr.pb.pw25s.server.security.dto.AuthenticationResponse;
-import br.edu.utfpr.pb.pw25s.server.service.UserService;
+import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
+import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.repository.UserRepository;
+import br.edu.utfpr.pb.pqcs.server.security.SecurityConstants;
+import br.edu.utfpr.pb.pqcs.server.security.dto.AuthenticationResponse;
+import br.edu.utfpr.pb.pqcs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

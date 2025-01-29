@@ -1,6 +1,6 @@
-package br.edu.utfpr.pb.pw25s.server.security;
+package br.edu.utfpr.pb.pqcs.server.security;
 
-import br.edu.utfpr.pb.pw25s.server.service.AuthService;
+import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

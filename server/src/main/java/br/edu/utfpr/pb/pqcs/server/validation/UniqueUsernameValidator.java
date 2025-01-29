@@ -1,7 +1,7 @@
-package br.edu.utfpr.pb.pw25s.server.validation;
+package br.edu.utfpr.pb.pqcs.server.validation;
 
-import br.edu.utfpr.pb.pw25s.server.annotation.UniqueUsername;
-import br.edu.utfpr.pb.pw25s.server.repository.UserRepository;
+import br.edu.utfpr.pb.pqcs.server.annotation.UniqueUsername;
+import br.edu.utfpr.pb.pqcs.server.repository.UserRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;

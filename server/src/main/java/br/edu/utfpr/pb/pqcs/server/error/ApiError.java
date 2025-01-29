@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.error;
+package br.edu.utfpr.pb.pqcs.server.error;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

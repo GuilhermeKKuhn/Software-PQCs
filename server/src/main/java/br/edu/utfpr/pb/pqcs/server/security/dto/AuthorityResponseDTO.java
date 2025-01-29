@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.pw25s.server.security.dto;
+package br.edu.utfpr.pb.pqcs.server.security.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
