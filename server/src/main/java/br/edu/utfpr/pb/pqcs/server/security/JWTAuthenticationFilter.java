@@ -43,7 +43,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                                 throws AuthenticationException {
 
         try {
-            //HTTP.POST {"username":"admin", "password":"P4ssword"}
+
             //Obtém os dados de username e password utilizando o ObjectMapper para converter o JSON
             //em um objeto User com esses dados.
             User credentials = new User();
