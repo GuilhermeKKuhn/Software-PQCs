@@ -25,7 +25,7 @@ public class UserController {
         this.modelMapper = modelMapper;
     }
 
-    @PostMapping
+    @PostMapping("/createUser")
     public GenericResponse createUser(@Valid @RequestBody UserDTO user) {
         User userEntity = modelMapper.map(user, User.class);
         userService.save(userEntity);

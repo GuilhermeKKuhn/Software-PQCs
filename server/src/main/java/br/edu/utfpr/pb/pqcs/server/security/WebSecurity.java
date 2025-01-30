@@ -33,7 +33,7 @@ public class WebSecurity {
     // Objeto responsável por realizar o tratamento de exceção quando o usuário informar credenciais incorretas ao autenticar-se.
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public WebSecurity(AuthService authService, AuthenticationEntryPoint authenticationEntryPoint) {
+    public WebSecurity(final AuthService authService, final AuthenticationEntryPoint authenticationEntryPoint) {
         this.authService = authService;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }

@@ -1,5 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.security.dto;
 
+import br.edu.utfpr.pb.pqcs.server.model.TipoPerfil;
 import br.edu.utfpr.pb.pqcs.server.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,13 +17,17 @@ import java.util.Set;
 @AllArgsConstructor
 public class UserResponseDTO {
 
-    private String displayName;
     private String username;
+    private String email;
+    private TipoPerfil tipoPerfil;
+    private String siape;
     private Set<AuthorityResponseDTO> authorities;
 
     public UserResponseDTO(User user) {
-        this.displayName = user.getDisplayName();
         this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.tipoPerfil = user.getTipoPerfil();
+        this.siape = user.getSiape();
         this.authorities = new HashSet<>();
         for (GrantedAuthority authority: user.getAuthorities()) {
             authorities.add( new AuthorityResponseDTO(authority.getAuthority()) );
