@@ -20,6 +20,8 @@ import java.util.Collection;
 @NoArgsConstructor
 @Builder
 @ToString
+@Getter
+@Setter
 public class User implements UserDetails {
 
     @Id
@@ -70,6 +72,16 @@ public class User implements UserDetails {
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return AuthorityUtils.createAuthorityList("ROLE_USER");
+    }
+
+    @Override
+    public String getPassword() {
+        return "";
+    }
+
+    @Override
+    public String getUsername() {
+        return "";
     }
 
     @Override
