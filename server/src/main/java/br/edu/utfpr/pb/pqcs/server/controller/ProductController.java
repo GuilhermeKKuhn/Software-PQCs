@@ -28,7 +28,7 @@ public class ProductController extends CrudController<Product, ProductDTO, Long>
     }
 
     @Override
-    protected ModelMapper getModelMapper() {
+    protected ModelMapper getModelMapper(){
         return modelMapper;
     }
 }
