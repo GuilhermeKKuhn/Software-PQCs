@@ -1,7 +1,7 @@
 package br.edu.utfpr.pb.pqcs.server.controller;
 
 import br.edu.utfpr.pb.pqcs.server.dto.ProductDTO;
-import br.edu.utfpr.pb.pqcs.server.model.Product;
+import br.edu.utfpr.pb.pqcs.server.model.ProdutoQuimico;
 import br.edu.utfpr.pb.pqcs.server.service.ICrudService;
 import br.edu.utfpr.pb.pqcs.server.service.IProductService;
 import org.modelmapper.ModelMapper;
@@ -10,20 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("products")
-public class ProductController extends CrudController<Product, ProductDTO, Long> {
+public class ProductController extends CrudController<ProdutoQuimico, ProductDTO, Long> {
 
     private static IProductService productService;
 
     private static ModelMapper modelMapper;
 
     public ProductController(IProductService productService, ModelMapper modelMapper) {
-        super(Product.class, ProductDTO.class);
+        super(ProdutoQuimico.class, ProductDTO.class);
         ProductController.productService = productService;
         ProductController.modelMapper = modelMapper;
     }
 
     @Override
-    protected ICrudService<Product, Long> getService() {
+    protected ICrudService<ProdutoQuimico, Long> getService() {
         return productService;
     }
 

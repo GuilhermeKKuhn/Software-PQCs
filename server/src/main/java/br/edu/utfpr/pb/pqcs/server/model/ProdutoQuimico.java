@@ -8,11 +8,13 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_product")
+@Table(name = "tb_produto_quimico")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Product {
+@Getter
+@Setter
+public class ProdutoQuimico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,28 +23,31 @@ public class Product {
 
     @NotNull
     @Getter @Setter
-    private String name;
-
-    @NotNull
-    @Column(length = 1024)
-    @Getter @Setter
-    private String description;
+    private String nome;
 
     @NotNull
     @Getter @Setter
-    private BigDecimal price;
+    private String cas;
+
+    @NotNull
+    private Integer validade;
+
+    @NotNull
+    private String caracteristica;
+
+    @NotNull
+    private String estadoFisico;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
-    @Getter @Setter
-    private Category category;
+    @JoinColumn(name = "unidademedida_id", referencedColumnName = "id")
+    private UnidadeMedida unidadeMedida;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Product product = (Product) o;
-        return Objects.equals(id, product.id);
+        ProdutoQuimico produtoQuimico = (ProdutoQuimico) o;
+        return Objects.equals(id, produtoQuimico.id);
     }
 
     @Override
