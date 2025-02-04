@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
-// T = class type, D = dto type, ID = attribute related to primary key type
+
 public abstract class CrudController <T, D, ID extends Serializable> {
 
     protected abstract ICrudService<T, ID> getService();

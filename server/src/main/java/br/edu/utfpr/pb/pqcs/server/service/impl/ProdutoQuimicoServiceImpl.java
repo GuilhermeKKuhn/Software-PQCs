@@ -4,7 +4,9 @@ import br.edu.utfpr.pb.pqcs.server.model.ProdutoQuimico;
 import br.edu.utfpr.pb.pqcs.server.repository.ProdutoQuimicoRepository;
 import br.edu.utfpr.pb.pqcs.server.service.IProdutoQuimicoService;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProdutoQuimicoServiceImpl extends CrudServiceImpl<ProdutoQuimico, Long>
         implements IProdutoQuimicoService {
 

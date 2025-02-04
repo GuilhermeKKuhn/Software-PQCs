@@ -4,7 +4,10 @@ import br.edu.utfpr.pb.pqcs.server.model.Departamento;
 import br.edu.utfpr.pb.pqcs.server.repository.DepartamentoRepository;
 import br.edu.utfpr.pb.pqcs.server.service.IdepartamentoService;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
 
+
+@Service
 public class DepartamentoServiceImpl extends CrudServiceImpl<Departamento, Long>
         implements IdepartamentoService {
 

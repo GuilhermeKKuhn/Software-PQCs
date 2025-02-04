@@ -1,1 +1,0 @@
-INSERT INTO tb_user(username, password, email, ativo, tipo_Perfil, siape) VALUES ('ADMIN', '$2a$10$.PVIfB07x.SfMYTcToxL0.yxcLWU0GbS2NUO1W1QAvqMm/TsFhVem', 'admin@gmail.com', TRUE, 'ADMINISTRADOR', '12345');
