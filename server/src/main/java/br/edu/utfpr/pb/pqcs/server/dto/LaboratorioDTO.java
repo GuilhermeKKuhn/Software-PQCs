@@ -11,7 +11,7 @@ public class LaboratorioDTO {
     private Long id;
 
     @NotNull
-    private String nome;
+    private String nomeLaboratorio;
 
     @NotNull
     private String sala;
@@ -20,5 +20,5 @@ public class LaboratorioDTO {
     private Departamento departamento;
 
     @NotNull
-    private User user;
+    private User responsavel;
 }

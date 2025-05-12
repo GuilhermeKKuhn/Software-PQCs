@@ -10,7 +10,7 @@ public class DepartamentoDTO {
     private Long id;
 
     @NotNull
-    private String nome;
+    private String nomeDepartamento;
 
     @NotNull
     private User responsavel;

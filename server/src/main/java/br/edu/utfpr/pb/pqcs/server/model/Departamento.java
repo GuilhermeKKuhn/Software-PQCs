@@ -22,5 +22,5 @@ public class Departamento {
 
     @ManyToOne
     @JoinColumn(name = "responsavel_id", referencedColumnName = "id")
-    private User Responsavel;
+    private User responsavel;
 }

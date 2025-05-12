@@ -71,7 +71,12 @@ public class User implements UserDetails {
     @Transient
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.createAuthorityList("ROLE_USER");
+        String role = switch (this.getTipoPerfil()) {
+            case ADMINISTRADOR -> "ROLE_ADMINISTRADOR";
+            case RESPONSAVEL_DEPARTAMENTO -> "ROLE_RESPONSAVEL_DEPARTAMENTO";
+            case RESPONSAVEL_LABORATORIO -> "ROLE_RESPONSAVEL_LABORATORIO";
+        };
+        return AuthorityUtils.createAuthorityList(role);
     }
 
     @Override
