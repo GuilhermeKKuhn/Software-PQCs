@@ -25,6 +25,6 @@ public class ProdutoQuimicoDTO {
     private String estadoFisico;
 
     @NotNull
-    private UnidadeMedida unidadeMedida;
+    private UnidadeMedidaDTO unidadeMedida;
 
 }

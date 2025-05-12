@@ -20,4 +20,6 @@ public class ProdutoQuimicoServiceImpl extends CrudServiceImpl<ProdutoQuimico, L
     protected JpaRepository<ProdutoQuimico, Long> getRepository() {
         return produtoQuimicoRepository;
     }
+
+   
 }

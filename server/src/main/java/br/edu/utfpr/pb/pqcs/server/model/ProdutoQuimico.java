@@ -38,7 +38,7 @@ public class ProdutoQuimico {
     @NotNull
     private String estadoFisico;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "unidademedida_id", referencedColumnName = "id")
     private UnidadeMedida unidadeMedida;
 
