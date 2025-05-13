@@ -19,6 +19,8 @@ public interface ICrudService<T, ID extends Serializable> {
 
     T saveAndFlush(T entity);
 
+    T update(T entity);
+
     Iterable<T> save(Iterable<T> iterable);
 
     void flush();

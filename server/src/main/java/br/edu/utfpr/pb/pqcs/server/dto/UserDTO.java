@@ -24,10 +24,7 @@ public class UserDTO {
     @Size(min = 4, max = 50)
     private String username;
 
-    @NotNull(message = "{br.edu.utfpr.pb.pw26s.server.user.password.constraints.NotNull.message}")
-    @Size(min = 6)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "{br.edu.utfpr.pb.pw26s.server.user.password.constraints.Pattern.message}")
-    private String password;
+
 
     @NotNull(message = "O email não pode ser nulo")
     @Column
@@ -53,7 +50,6 @@ public class UserDTO {
     public UserDTO(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
-        this.password = user.getPassword();
         this.email = user.getEmail();
         this.ativo = user.isAtivo();
         this.tipoPerfil = user.getTipoPerfil();

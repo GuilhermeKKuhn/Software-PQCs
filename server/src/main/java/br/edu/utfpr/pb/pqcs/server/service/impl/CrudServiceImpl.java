@@ -1,6 +1,7 @@
 package br.edu.utfpr.pb.pqcs.server.service.impl;
 
 import br.edu.utfpr.pb.pqcs.server.service.ICrudService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -80,4 +81,10 @@ public abstract class CrudServiceImpl<T, ID extends Serializable>
     public void deleteAll() {
         getRepository().deleteAll();
     }
+
+    @Override
+    public T update(T entity) {
+        return getRepository().save(entity);
+    }
+
 }
