@@ -1,71 +1,47 @@
-import { Link, NavLink } from "react-router-dom";
-import logo from "@/assets/utfpr-logo.png";
-import AuthService from "@/service/AuthService";
+import {
+  Box,
+  Flex,
+  Text,
+  Spacer,
+  Avatar,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Image,
+} from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import logoUTFPR from "@/assets/logoUTFPR.png";
 
-export function NavBar() {
-  const onClickLogout = () => {
-    AuthService.logout();
-    window.location.reload();
-  };
+export const Navbar = () => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
-    <div className="bg-white shadow-sm mb-2">
-      <div className="container">
-        <nav className="navbar navbar-light navbar-expand">
-          <Link to="/" className="navbar-brand">
-            <img src={logo} width="60" alt="UTFPR" />
-          </Link>
-          <ul className="navbar-nav me-auto mb-2 mb-md-0">
-            <li className="nav-item">
-              <NavLink
-                to="/"
-                className={(navData) =>
-                  navData.isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Home
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink
-                to="/categories"
-                className={(navData) =>
-                  navData.isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Categorias
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink
-                to="/products"
-                className={(navData) =>
-                  navData.isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Produtos
-              </NavLink>
-            </li>
+    <Box bg="white" px={6} py={4} boxShadow="md">
+      <Flex align="center">
+        {/* Logo UTFPR */}
+        <Image src={logoUTFPR} alt="UTFPR" maxH="40px" />
 
-            <li className="nav-item">
-              <NavLink
-                to="/product-v2"
-                className={(navData) =>
-                  navData.isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Produtos V2
-              </NavLink>
-            </li>
+        <Spacer />
 
-            <li className="nav-item">
-              <button className="btn btn-light" onClick={onClickLogout}>
-                &times; Sair
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </div>
+        {/* Nome do usuário + menu */}
+        <Menu>
+          <MenuButton>
+            <Flex align="center" gap={2}>
+              <Avatar name={user.name} size="sm" />
+              <Text fontWeight="medium">{user.name}</Text>
+              <ChevronDownIcon />
+            </Flex>
+          </MenuButton>
+          <MenuList>
+            <MenuItem>Perfil</MenuItem>
+            <MenuItem onClick={() => {
+              localStorage.clear();
+              window.location.href = "/"; // ou use navigate()
+            }}>Sair</MenuItem>
+          </MenuList>
+        </Menu>
+      </Flex>
+    </Box>
   );
-}
+};

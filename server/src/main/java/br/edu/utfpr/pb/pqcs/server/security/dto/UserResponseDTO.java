@@ -18,6 +18,7 @@ import java.util.Set;
 public class UserResponseDTO {
 
     private String username;
+    private String name;
     private String email;
     private TipoPerfil tipoPerfil;
     private String siape;
@@ -25,6 +26,7 @@ public class UserResponseDTO {
 
     public UserResponseDTO(User user) {
         this.username = user.getUsername();
+        this.name = user.getName();
         this.email = user.getEmail();
         this.tipoPerfil = user.getTipoPerfil();
         this.siape = user.getSiape();

@@ -2,6 +2,7 @@ package br.edu.utfpr.pb.pqcs.server.security;
 
 import br.edu.utfpr.pb.pqcs.server.model.User;
 import br.edu.utfpr.pb.pqcs.server.security.dto.AuthenticationResponse;
+import br.edu.utfpr.pb.pqcs.server.security.dto.LoginRequest;
 import br.edu.utfpr.pb.pqcs.server.security.dto.UserResponseDTO;
 import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import com.auth0.jwt.JWT;
@@ -43,31 +44,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                                 throws AuthenticationException {
 
         try {
+            LoginRequest credentials = new ObjectMapper()
+                    .readValue(request.getInputStream(), LoginRequest.class);
 
-            //Obtém os dados de username e password utilizando o ObjectMapper para converter o JSON
-            //em um objeto User com esses dados.
-            User credentials = new User();
-            User user = new User();
-            //Verifica se o usuário existe no banco de dados, caso não exista uma Exception será disparada
-            //e o código será parado de executar nessa parte e o usuário irá receber uma resposta
-            //com falha na autenticação (classe: EntryPointUnauthorizedHandler)
-            if (request.getInputStream() != null && request.getInputStream().available() > 0) {
-                credentials = new ObjectMapper().readValue(request.getInputStream(), User.class);
-                user = (User) authService.loadUserByUsername(credentials.getUsername());
-            }
-            //Caso o usuário seja encontrado, o objeto authenticationManager encarrega-se de autenticá-lo.
-            //Como o authenticationManager foi configurado na classe WebSecurity e, foi informado o método
-            //de criptografia da senha, a senha informada durante a autenticação é criptografada e
-            //comparada com a senha armazenada no banco. Caso não esteja correta uma Exception será disparada
-            //Caso ocorra sucesso será chamado o método: successfulAuthentication dessa classe
+            System.out.println("Tentando autenticar: " + credentials.getEmail());
+
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            credentials.getUsername(),
-                            credentials.getPassword(),
-                            user.getAuthorities()
+                            credentials.getEmail(),
+                            credentials.getPassword()
                     )
             );
-
         } catch (StreamReadException e) {
             throw new RuntimeException(e);
         } catch (DatabindException e) {

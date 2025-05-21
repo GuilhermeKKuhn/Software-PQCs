@@ -4,8 +4,7 @@ import { ProductListPage } from "@/pages/ProductListPage";
 import { ProductFormPage } from "@/pages/ProductFormPage";
 import { ProductListPageV2 } from "@/pages/ProductListPageV2";
 import { ProductFormPageV2 } from "@/pages/ProductFormPageV2";
-import { LoginPage } from "@/pages/LoginPage";
-import { UserSignupPage } from "@/pages/UserSignupPage";
+import  LoginPage  from "@/pages/LoginPage";
 import { AuthenticatedRoutes } from "../AuthenticatedRoutes";
 import { HomePage } from "@/pages/HomePage";
 import { CategoryListPage } from "@/pages/CategoryListPage";
@@ -16,7 +15,6 @@ export function BaseRoutes() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<UserSignupPage />} />
 
         {/* Protected Routes */}
         <Route element={<AuthenticatedRoutes />}>

@@ -24,7 +24,10 @@ public class UserDTO {
     @Size(min = 4, max = 50)
     private String username;
 
-
+    @UniqueUsername
+    @NotNull
+    @Size(min = 4, max = 50)
+    private String name;
 
     @NotNull(message = "O email não pode ser nulo")
     @Column
@@ -50,6 +53,7 @@ public class UserDTO {
     public UserDTO(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
+        this.name = user.getName();
         this.email = user.getEmail();
         this.ativo = user.isAtivo();
         this.tipoPerfil = user.getTipoPerfil();
