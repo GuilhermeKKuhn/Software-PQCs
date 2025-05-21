@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "tb_estoque")
 @Builder
@@ -20,7 +22,7 @@ public class Estoque {
     @NotNull
     private Float quantidade;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "produto_id", referencedColumnName = "id")
     @NotNull
     private ProdutoQuimico produto;
@@ -34,4 +36,9 @@ public class Estoque {
     @JoinColumn(name = "notafiscal_id", referencedColumnName = "id")
     @NotNull
     private NotaFiscal notaFiscal;
+
+    private LocalDateTime validade;
+
+    private String lote;
+
 }

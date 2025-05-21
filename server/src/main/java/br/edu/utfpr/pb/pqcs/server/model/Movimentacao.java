@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tb_movimentacao")
@@ -21,32 +22,39 @@ public class Movimentacao {
     private Long id;
 
     @NotNull
-    private Float quantidade;
+    private Double quantidade;
 
     @NotNull
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-    private LocalDate dataMovimentacao;
+    @DateTimeFormat
+    private LocalDateTime dataMovimentacao;
 
     @NotNull
-    private String tipoMovimentacao;
+    private TipoMovimentacao tipoMovimentacao;
+
+    @NotNull
+    private String lote;
+
+    private LocalDate validade;
+
+
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "notaFiscal_id", referencedColumnName = "id")
+    private NotaFiscal notaFiscal;
 
     @ManyToOne
     @JoinColumn(name = "produto_id",referencedColumnName = "id")
     @NotNull
     private ProdutoQuimico produto;
 
-    @ManyToOne
-    @JoinColumn(name = "solicitante_id", referencedColumnName = "id")
-    @NotNull
-    private User solicitante;
+    @Column(name = "usuario_id", nullable = false)
+    private Long usuarioId;
 
     @ManyToOne
     @JoinColumn(name = "laborigem_id", referencedColumnName = "id")
-    @NotNull
     private Laboratorio laboratorioOrigem;
 
     @ManyToOne
     @JoinColumn(name = "labDestino_id", referencedColumnName = "id")
-    @NotNull
     private Laboratorio laboratorioDestino;
 }
