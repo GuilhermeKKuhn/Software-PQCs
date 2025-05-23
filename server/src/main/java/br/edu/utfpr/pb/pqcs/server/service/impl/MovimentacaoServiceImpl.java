@@ -1,10 +1,13 @@
 package br.edu.utfpr.pb.pqcs.server.service.impl;
 
 import br.edu.utfpr.pb.pqcs.server.dto.MovimentacaoDTO;
+import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
 import br.edu.utfpr.pb.pqcs.server.model.*;
 import br.edu.utfpr.pb.pqcs.server.repository.*;
+import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import br.edu.utfpr.pb.pqcs.server.service.ImovimentacaoService;
 import br.edu.utfpr.pb.pqcs.server.util.UserUtil;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +22,18 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
     private final ProdutoQuimicoRepository produtoRepository;
     private final LaboratorioRepository laboratorioRepository;
     private final NotaFiscalRepository notaFiscalRepository;
-    private UserUtil usuarioUtil;
+    private final AuthService authService;
+    private final ModelMapper modelMapper;
 
     public MovimentacaoServiceImpl(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository, ProdutoQuimicoRepository produtoRepository,
-                                   LaboratorioRepository laboratorioRepository, NotaFiscalRepository notaFiscalRepository) {
+                                   LaboratorioRepository laboratorioRepository, NotaFiscalRepository notaFiscalRepository, AuthService authService, ModelMapper modelMapper) {
         this.movimentacaoRepository = movimentacaoRepository;
         this.estoqueRepository = estoqueRepository;
         this.produtoRepository = produtoRepository;
         this.laboratorioRepository = laboratorioRepository;
         this.notaFiscalRepository = notaFiscalRepository;
+        this.authService = authService;
+        this.modelMapper = modelMapper;
     }
 
     public MovimentacaoDTO realizarMovimentacao(MovimentacaoDTO dto) {
@@ -46,10 +52,6 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
                 notaFiscalRepository.findById(dto.getNotaFiscalId())
                         .orElse(null) : null;
 
-        Long usuarioId = dto.getUsuarioId() != null
-                ? dto.getUsuarioId()
-                : usuarioUtil.getUsuarioIdLogado();
-
         TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
 
         Movimentacao movimentacao = new Movimentacao();
@@ -61,7 +63,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         movimentacao.setDataMovimentacao(LocalDateTime.now());
         movimentacao.setLote(dto.getLote());
         movimentacao.setNotaFiscal(notaFiscal);
-        movimentacao.setUsuarioId(usuarioId);
+        movimentacao.setUsuario(authService.getUsuarioLogado());
 
         atualizarEstoque(movimentacao);
 
@@ -69,6 +71,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
         dto.setId(movimentacao.getId());
         dto.setData(movimentacao.getDataMovimentacao());
+        dto.setUsuario(modelMapper.map(movimentacao.getUsuario(), UserDTO.class));
         return dto;
     }
 

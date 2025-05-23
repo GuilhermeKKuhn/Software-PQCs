@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthService from "@/service/AuthService";
-import { IUserLogin } from "@/commons/interfaces";
+import { IUserLogin } from "@/commons/UserInterfaces";
 import logoUTFPR from "@/assets/logoUTFPR.png";
 import logoPQCS from "@/assets/logoPQCS.png"
 
@@ -132,11 +132,6 @@ export default function LoginPage() {
                 border="none"
                 focusBorderColor="#373435"
               />
-              <InputRightElement>
-                <Button size="sm" variant="ghost" onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? "🙈" : "👁️"}
-                </Button>
-              </InputRightElement>
             </InputGroup>
           </FormControl>
 

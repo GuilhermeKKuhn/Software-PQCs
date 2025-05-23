@@ -18,7 +18,7 @@ public class MovimentacaoDTO {
     private String lote;
     private Long notaFiscalId;
     private LocalDateTime data;
-    private Long usuarioId;
     private LocalDate validade;
+    private UserDTO usuario;
 
 }

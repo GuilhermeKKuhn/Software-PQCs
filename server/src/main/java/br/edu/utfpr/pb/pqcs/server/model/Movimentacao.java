@@ -1,5 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.model;
 
+import br.edu.utfpr.pb.pqcs.server.util.UserUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -36,7 +37,6 @@ public class Movimentacao {
 
     private LocalDate validade;
 
-
     @ManyToOne
     @NotNull
     @JoinColumn(name = "notaFiscal_id", referencedColumnName = "id")
@@ -47,8 +47,9 @@ public class Movimentacao {
     @NotNull
     private ProdutoQuimico produto;
 
-    @Column(name = "usuario_id", nullable = false)
-    private Long usuarioId;
+    @ManyToOne
+   @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    private User usuario;
 
     @ManyToOne
     @JoinColumn(name = "laborigem_id", referencedColumnName = "id")

@@ -1,9 +1,5 @@
-import { IUserLogin, IUserSignUp } from "@/commons/interfaces";
+import { IUserLogin, } from "@/commons/UserInterfaces";
 import { api } from "@/lib/axios";
-
-const signup = (user: IUserSignUp) => {
-  return api.post("/users", user);
-};
 
 const login = (user: IUserLogin) => {
   return api.post("/login", user);
@@ -21,11 +17,10 @@ const isAuthenticated = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem("token");
+  localStorage.removeItem("token"); 
 };
 
 const AuthService = {
-  signup,
   login,
   isAuthenticated,
   logout,
