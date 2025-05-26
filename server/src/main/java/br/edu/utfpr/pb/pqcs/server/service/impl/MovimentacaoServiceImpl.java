@@ -1,17 +1,21 @@
 package br.edu.utfpr.pb.pqcs.server.service.impl;
 
+import br.edu.utfpr.pb.pqcs.server.dto.ItemMovimentacaoDTO;
 import br.edu.utfpr.pb.pqcs.server.dto.MovimentacaoDTO;
+import br.edu.utfpr.pb.pqcs.server.dto.NotaFiscalDTO;
 import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
 import br.edu.utfpr.pb.pqcs.server.model.*;
 import br.edu.utfpr.pb.pqcs.server.repository.*;
 import br.edu.utfpr.pb.pqcs.server.service.AuthService;
 import br.edu.utfpr.pb.pqcs.server.service.ImovimentacaoService;
-import br.edu.utfpr.pb.pqcs.server.util.UserUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,9 +28,12 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
     private final NotaFiscalRepository notaFiscalRepository;
     private final AuthService authService;
     private final ModelMapper modelMapper;
+    private final FornecedorRepository fornecedorRepository;
+    private final ItensNotaFiscalRepository itensNotaFiscalRepository;
 
     public MovimentacaoServiceImpl(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository, ProdutoQuimicoRepository produtoRepository,
-                                   LaboratorioRepository laboratorioRepository, NotaFiscalRepository notaFiscalRepository, AuthService authService, ModelMapper modelMapper) {
+                                   LaboratorioRepository laboratorioRepository, NotaFiscalRepository notaFiscalRepository, AuthService authService, ModelMapper modelMapper,
+                                   FornecedorRepository fornecedorRepository,ItensNotaFiscalRepository itensNotaFiscalRepository) {
         this.movimentacaoRepository = movimentacaoRepository;
         this.estoqueRepository = estoqueRepository;
         this.produtoRepository = produtoRepository;
@@ -34,46 +41,88 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         this.notaFiscalRepository = notaFiscalRepository;
         this.authService = authService;
         this.modelMapper = modelMapper;
+        this.fornecedorRepository = fornecedorRepository;
+        this.itensNotaFiscalRepository = itensNotaFiscalRepository;
     }
 
-    public MovimentacaoDTO realizarMovimentacao(MovimentacaoDTO dto) {
-        ProdutoQuimico produto = produtoRepository.findById(dto.getProdutoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
-        Laboratorio origem = dto.getLaboratorioOrigemId() != null ?
-                laboratorioRepository.findById(dto.getLaboratorioOrigemId())
-                        .orElse(null) : null;
+    public List<MovimentacaoDTO> realizarMovimentacoes(MovimentacaoDTO dto) {
+        // Salva a Nota Fiscal se vier nova
+        NotaFiscal notaFiscal = null;
+        if (dto.getNotaFiscal() != null && dto.getNotaFiscal().getId() == null) {
+            // Cria uma nova nota fiscal
+            NotaFiscal novaNota = new NotaFiscal();
+            novaNota.setNumeroNotaFiscal(dto.getNotaFiscal().getNumeroNotaFiscal());
+            novaNota.setDataRecebimento(dto.getNotaFiscal().getDataRecebimento());
 
-        Laboratorio destino = dto.getLaboratorioDestinoId() != null ?
-                laboratorioRepository.findById(dto.getLaboratorioDestinoId())
-                        .orElse(null) : null;
+            // Fornecedor deve existir
+            Long fornecedorId = dto.getNotaFiscal().getFornecedor().getId();
+            Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
+                    .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+            novaNota.setFornecedor(fornecedor);
 
-        NotaFiscal notaFiscal = dto.getNotaFiscalId() != null ?
-                notaFiscalRepository.findById(dto.getNotaFiscalId())
-                        .orElse(null) : null;
+            notaFiscal = notaFiscalRepository.save(novaNota);
+        } else if (dto.getNotaFiscal() != null) {
+            // Usar nota já existente
+            notaFiscal = notaFiscalRepository.findById(dto.getNotaFiscal().getId())
+                    .orElseThrow(() -> new RuntimeException("Nota Fiscal não encontrada"));
+        }
 
-        TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
+        List<MovimentacaoDTO> movimentacoesFeitas = new ArrayList<>();
 
-        Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setProduto(produto);
-        movimentacao.setLaboratorioOrigem(origem);
-        movimentacao.setLaboratorioDestino(destino);
-        movimentacao.setQuantidade(dto.getQuantidade());
-        movimentacao.setTipoMovimentacao(tipo);
-        movimentacao.setDataMovimentacao(LocalDateTime.now());
-        movimentacao.setLote(dto.getLote());
-        movimentacao.setNotaFiscal(notaFiscal);
-        movimentacao.setUsuario(authService.getUsuarioLogado());
+        for (ItemMovimentacaoDTO item : dto.getItens()) {
+            ProdutoQuimico produto = produtoRepository.findById(item.getProdutoId())
+                    .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
-        atualizarEstoque(movimentacao);
+            Laboratorio origem = dto.getLaboratorioOrigemId() != null ?
+                    laboratorioRepository.findById(dto.getLaboratorioOrigemId()).orElse(null) : null;
 
-        movimentacaoRepository.save(movimentacao);
+            Laboratorio destino = dto.getLaboratorioDestinoId() != null ?
+                    laboratorioRepository.findById(dto.getLaboratorioDestinoId()).orElse(null) : null;
 
-        dto.setId(movimentacao.getId());
-        dto.setData(movimentacao.getDataMovimentacao());
-        dto.setUsuario(modelMapper.map(movimentacao.getUsuario(), UserDTO.class));
-        return dto;
+            TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
+
+            // Calcular validade se for entrada
+            LocalDate validade = null;
+            if (tipo == TipoMovimentacao.ENTRADA && notaFiscal != null && produto.getValidade() != null) {
+                validade = notaFiscal.getDataRecebimento().plusDays(produto.getValidade());
+            }
+
+            // Salva item na tb_itensnotafiscal se for ENTRADA
+            if (tipo == TipoMovimentacao.ENTRADA) {
+                ItensNotaFiscal itensNota = new ItensNotaFiscal();
+                itensNota.setQuantidade(item.getQuantidade().floatValue());
+                itensNota.setPreco(item.getPreco().floatValue());
+                itensNota.setData(notaFiscal.getDataRecebimento());
+                itensNota.setLote(item.getLote());
+                itensNota.setProdutoQuimico(produto);
+                itensNota.setNotaFiscal(notaFiscal);
+                // Salva no repo de itens nota
+                itensNotaFiscalRepository.save(itensNota);
+            }
+
+            Movimentacao movimentacao = new Movimentacao();
+            movimentacao.setProduto(produto);
+            movimentacao.setLaboratorioOrigem(origem);
+            movimentacao.setLaboratorioDestino(destino);
+            movimentacao.setQuantidade(item.getQuantidade());
+            movimentacao.setTipoMovimentacao(tipo);
+            movimentacao.setDataMovimentacao(LocalDateTime.now());
+            movimentacao.setLote(item.getLote());
+            movimentacao.setNotaFiscal(notaFiscal);
+            movimentacao.setUsuario(authService.getUsuarioLogado());
+            movimentacao.setValidade(validade);
+
+            // Atualiza estoque para cada item
+            atualizarEstoque(movimentacao);
+
+            movimentacaoRepository.save(movimentacao);
+            movimentacoesFeitas.add(toDTO(movimentacao));
+        }
+
+        return movimentacoesFeitas;
     }
+
 
     private void atualizarEstoque(Movimentacao mov) {
         ProdutoQuimico produto = mov.getProduto();
@@ -104,12 +153,18 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             novo.setLote(mov.getLote());
             novo.setQuantidade(0.0F);
             novo.setNotaFiscal(mov.getNotaFiscal());
+            novo.setValidade(mov.getValidade() != null ? mov.getValidade().atStartOfDay() : null);
             return novo;
         });
 
         estoque.setQuantidade((float) (estoque.getQuantidade() + mov.getQuantidade()));
+        // Atualiza validade se for maior que o atual
+        if (mov.getValidade() != null) {
+            estoque.setValidade(mov.getValidade().atStartOfDay());
+        }
         estoqueRepository.save(estoque);
     }
+
 
     private void processarSaida(ProdutoQuimico produto, Laboratorio laboratorio, Double quantidade) {
         if (laboratorio == null) throw new RuntimeException("Laboratório de origem não informado.");
@@ -150,14 +205,22 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
     private MovimentacaoDTO toDTO(Movimentacao mov) {
         MovimentacaoDTO dto = new MovimentacaoDTO();
         dto.setId(mov.getId());
-        dto.setProdutoId(mov.getProduto().getId());
+        dto.setTipo(mov.getTipoMovimentacao().name());
         dto.setLaboratorioOrigemId(mov.getLaboratorioOrigem() != null ? mov.getLaboratorioOrigem().getId() : null);
         dto.setLaboratorioDestinoId(mov.getLaboratorioDestino() != null ? mov.getLaboratorioDestino().getId() : null);
-        dto.setQuantidade(mov.getQuantidade());
-        dto.setTipo(mov.getTipoMovimentacao().name());
-        dto.setLote(mov.getLote());
-        dto.setNotaFiscalId(mov.getNotaFiscal() != null ? mov.getNotaFiscal().getId() : null);
-        dto.setData(mov.getDataMovimentacao());
+        dto.setNotaFiscal(mov.getNotaFiscal() != null ? modelMapper.map(mov.getNotaFiscal(), NotaFiscalDTO.class) : null);
+
+        // Monta o item
+        ItemMovimentacaoDTO item = new ItemMovimentacaoDTO();
+        item.setProdutoId(mov.getProduto().getId());
+        item.setQuantidade(mov.getQuantidade());
+        item.setLote(mov.getLote());
+        // Se quiser o preço, teria que buscar dos ItensNotaFiscal
+
+        List<ItemMovimentacaoDTO> itens = new ArrayList<>();
+        itens.add(item);
+        dto.setItens(itens);
+
         return dto;
     }
 

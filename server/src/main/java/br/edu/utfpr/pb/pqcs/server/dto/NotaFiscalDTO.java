@@ -11,14 +11,8 @@ import java.time.LocalDate;
 public class NotaFiscalDTO {
 
     private Long id;
-
-    @NotNull
-    private String numeroNota;
-
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-    @NotNull
-    private LocalDate dataNota;
-
-    private Fornecedor fornecedor;
+    private Long numeroNotaFiscal;
+    private LocalDate dataRecebimento;
+    private FornecedorDTO fornecedor;
 
 }

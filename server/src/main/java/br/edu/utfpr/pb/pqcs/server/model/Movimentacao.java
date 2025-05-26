@@ -1,6 +1,5 @@
 package br.edu.utfpr.pb.pqcs.server.model;
 
-import br.edu.utfpr.pb.pqcs.server.util.UserUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -48,7 +47,7 @@ public class Movimentacao {
     private ProdutoQuimico produto;
 
     @ManyToOne
-   @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private User usuario;
 
     @ManyToOne

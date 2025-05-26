@@ -4,21 +4,17 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Data
 public class MovimentacaoDTO {
 
     private Long id;
-    private Long produtoId;
+    private String tipo;
     private Long laboratorioOrigemId;
     private Long laboratorioDestinoId;
-    private Double quantidade;
-    private String tipo;
-    private String lote;
-    private Long notaFiscalId;
-    private LocalDateTime data;
-    private LocalDate validade;
-    private UserDTO usuario;
+    private NotaFiscalDTO notaFiscal;
+    private List<ItemMovimentacaoDTO> itens;
 
 }

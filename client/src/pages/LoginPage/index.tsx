@@ -1,31 +1,19 @@
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Image,
-  Text,
-  Heading,
-  Link,
-} from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { InputText } from "primereact/inputtext";
+import { Password } from "primereact/password";
+import { Button } from "primereact/button";
 import AuthService from "@/service/AuthService";
-import { IUserLogin } from "@/commons/UserInterfaces";
 import logoUTFPR from "@/assets/logoUTFPR.png";
-import logoPQCS from "@/assets/logoPQCS.png"
+import logoPQCS from "@/assets/logoPQCS.png";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [apiError, setApiError] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -33,8 +21,7 @@ export default function LoginPage() {
     setPending(true);
     setApiError(false);
 
-    const userLogin: IUserLogin = { email: form.email, password: form.password };
-    AuthService.login(userLogin)
+    AuthService.login({ email: form.email, password: form.password })
       .then((res) => {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
@@ -47,113 +34,108 @@ export default function LoginPage() {
   };
 
   return (
-    <Flex
-      height="100vh"
-      bgGradient="linear(to-b, #fef2a1, #ffffff)"
-      justify="center"
-      align="center"
-    >
-      <Flex
-        width="1400px"
-        height="900px"
-        borderRadius="2xl"
-        overflow="hidden"
-        boxShadow="lg"
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(to bottom, #fef2a1, #ffffff)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center"
+    }}>
+      <div
+        style={{
+          width: "920px",
+          height: "540px",
+          display: "flex",
+          borderRadius: "2rem",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.13)",
+          overflow: "hidden",
+          background: "#fff",
+        }}
       >
         {/* Lado esquerdo */}
-        <Box
-          width="50%"
-          bg="#fdfde3"
-          p={8}
-          display="flex"
-          flexDirection="column"
-          justifyContent="space-between"
-          borderRightRadius="2xl"
-        >
-          <Flex justify="center" align="center" flex="1" direction="column" gap={6}>
-            <Image src={logoPQCS} alt="Logo UTFPR" maxW="500px" />
-          </Flex>
-
-          <Box display="flex" justifyContent="flex-start">
-           <Image src="/assets/logoUTFPR.png" alt="Logo UTFPR" maxW="120px" />
-          </Box>
-        </Box>
+        <div style={{
+          flex: 1,
+          background: "#fdfde3",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "40px 30px"
+        }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+            <img src={logoPQCS} alt="Logo PQCS" style={{ maxWidth: "340px", marginBottom: 40, marginTop: 40 }} />
+          </div>
+          <img src={logoUTFPR} alt="Logo UTFPR" style={{ maxWidth: "100px", alignSelf: "flex-start" }} />
+        </div>
 
         {/* Lado direito */}
-        <Box
-          width="50%"
-          bg="white"
-          p={8}
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-        >
-          <Image
-            src={logoUTFPR}
-            alt="UTFPR logo"
-            mx="auto"
-            mb={4}
-            maxW="120px"
-          />
-
-          <Heading size="sm" textAlign="center" color="#373435" mb={6}>
+        <div style={{
+          flex: 1,
+          background: "white",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "50px 35px"
+        }}>
+          <img src={logoUTFPR} alt="Logo UTFPR" style={{ maxWidth: 90, margin: "0 auto 18px auto" }} />
+          <h2 style={{ textAlign: "center", color: "#373435", marginBottom: 24, fontSize: 22 }}>
             Login
-          </Heading>
+          </h2>
 
           {apiError && (
-            <Text color="red.500" textAlign="center" mb={4}>
+            <div style={{ color: "#f44336", textAlign: "center", marginBottom: 16 }}>
               E-mail ou senha inválidos.
-            </Text>
+            </div>
           )}
 
-          <FormControl mb={4}>
-            <Input
-              name="email"
-              placeholder="Informe seu login*"
-              onChange={handleChange}
-              value={form.email}
-              borderRadius="full"
-              bg="#f5f5f5"
-              border="none"
-              focusBorderColor="#373435"
-            />
-          </FormControl>
-
-          <FormControl mb={6}>
-            <InputGroup>
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Informe sua senha*"
+          <div className="p-fluid" style={{ marginBottom: 16 }}>
+            <span className="p-float-label">
+              <InputText
+                id="email"
+                name="email"
+                value={form.email}
                 onChange={handleChange}
-                value={form.password}
-                borderRadius="full"
-                bg="#f5f5f5"
-                border="none"
-                focusBorderColor="#373435"
+                className="p-inputtext-lg"
+                autoComplete="username"
               />
-            </InputGroup>
-          </FormControl>
+              <label htmlFor="email">Informe seu login*</label>
+            </span>
+          </div>
 
-          <Flex gap={4} mb={4}>
-            <Button
-              flex="1"
-              borderRadius="full"
-              bg="#FECB29"
-              color="#373435"
-              _hover={{ bg: "#ffd950" }}
-              onClick={handleLogin}
-              isLoading={pending}
-            >
-              Entrar
-            </Button>
-          </Flex>
+          <div className="p-fluid" style={{ marginBottom: 32 }}>
+            <span className="p-float-label">
+              <Password
+                id="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                toggleMask
+                feedback={false}
+                className="p-inputtext-lg"
+                autoComplete="current-password"
+              />
+              <label htmlFor="password">Informe sua senha*</label>
+            </span>
+          </div>
 
-          <Text fontSize="sm" textAlign="center" color="#999">
-            <Link color="#373435">Esqueci o login/senha</Link> | <Link color="#373435">ajuda</Link>
-          </Text>
-        </Box>
-      </Flex>
-    </Flex>
+          <Button
+            label={pending ? "Entrando..." : "Entrar"}
+            className="p-button-rounded p-button-warning p-button-lg"
+            style={{ width: "100%", marginBottom: 16, color: "#373435" }}
+            onClick={handleLogin}
+            disabled={pending}
+          />
+
+          <div style={{ textAlign: "center", color: "#999", fontSize: 15 }}>
+            <a href="#" style={{ color: "#373435", marginRight: 8 }}>
+              Esqueci o login/senha
+            </a>
+            <a href="#" style={{ color: "#373435", marginLeft: 8 }}>
+              ajuda
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

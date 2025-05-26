@@ -22,4 +22,21 @@ public class Fornecedor {
 
     @NotNull
     private String cnpj;
+
+    @NotNull
+    private String endereco;
+
+    @NotNull
+    private String numero;
+
+    @NotNull
+    private String cidade;
+
+    @NotNull String estado;
+
+    @NotNull
+    private String telefone;
+
+    @NotNull
+    private String email;
 }

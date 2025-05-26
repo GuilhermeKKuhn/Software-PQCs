@@ -8,10 +8,4 @@ public class FornecedorDTO {
 
     private Long id;
 
-    @NotNull
-    private String nome;
-
-    @NotNull
-    private String cnpj;
-
 }

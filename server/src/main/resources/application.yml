@@ -2,7 +2,7 @@ server:
   port: 8025
 spring:
   profiles:
-    active: dev
+    active: dev-postgres
   jpa:
     properties:
       javax:
@@ -27,7 +27,7 @@ spring:
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/PQCs
     username: postgres
-    password: postgres
+    password: 123
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
