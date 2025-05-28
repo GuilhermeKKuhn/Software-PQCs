@@ -3,6 +3,6 @@ export interface IDepartamento {
   nomeDepartamento: string;
   responsavel: {
     id: number;
-    nome?: string;
+    name?: string;
   };
 }

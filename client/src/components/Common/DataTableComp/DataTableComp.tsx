@@ -25,6 +25,7 @@ export function DataTableComp<T extends object>({
       value={data}
       paginator
       rows={10}
+      rowsPerPageOptions={[5, 10, 20, 50]}
       stripedRows
       responsiveLayout="scroll"
       {...props}

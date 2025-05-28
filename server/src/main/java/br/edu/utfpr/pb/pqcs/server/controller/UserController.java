@@ -36,7 +36,7 @@ public class UserController {
         return genericResponse;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.findAll();
         List<UserDTO> dtos = users.stream()

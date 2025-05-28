@@ -8,6 +8,6 @@ export interface ILaboratorio {
   };
   responsavel: {
     id: number;
-    nome?: string;
+    name?: string;
   };
 }
