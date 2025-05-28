@@ -1,0 +1,34 @@
+/* Deixa a tabela ocupando todo o espaço */
+.p-datatable {
+  width: 100%;
+}
+
+/* Padding bonito nas células */
+.p-datatable th,
+.p-datatable td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* Ações alinhadas à direita */
+.p-datatable th:last-child,
+.p-datatable td:last-child {
+  text-align: right;
+  width: 150px;
+}
+
+/* Cabeçalho com fundo */
+.p-datatable thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Zebra nas linhas */
+.p-datatable .p-datatable-tbody > tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+/* Mantém o conteúdo organizado */
+.p-datatable td {
+  white-space: nowrap;
+}

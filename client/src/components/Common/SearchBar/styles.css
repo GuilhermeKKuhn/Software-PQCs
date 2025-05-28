@@ -1,0 +1,8 @@
+.p-input-icon-left > i {
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  position: absolute;
+  color: #6c757d;
+  font-size: 1rem;
+}

@@ -8,9 +8,7 @@ const login = (user: IUserLogin) => {
 const isAuthenticated = () => {
   const token = localStorage.getItem("token");
   if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${JSON.parse(
-      token
-    )}`;
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
 
   return token ? true : false;
