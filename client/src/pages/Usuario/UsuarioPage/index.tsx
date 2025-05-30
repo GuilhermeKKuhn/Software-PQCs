@@ -9,6 +9,7 @@ import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
 import { IUser } from "@/commons/UserInterfaces";
 import UserService from "@/service/UserService";
+import AuthService from "@/service/AuthService";
 
 
 export function UsuarioPage() {
@@ -48,6 +49,13 @@ export function UsuarioPage() {
           setUsuarios(usuarios.filter((u) => u.id !== selectedItemId));
           setDeleteDialogVisible(false);
           setSelectedItemId(null);
+
+          const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+          if (Number(currentUser?.id) === Number(selectedItemId)) {
+            AuthService.logout();
+            navigate("/login");
+          }
         });
       }
     };

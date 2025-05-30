@@ -2,7 +2,7 @@ import { IUser } from "@/commons/UserInterfaces";
 import { api } from "@/lib/axios";
 
 const cadastrarUser = (user: IUser) => {
-  return api.post("/users", user);
+  return api.post("/users/createUser", user);
 };
 
 const editarUser = (id:number, user:IUser) => {

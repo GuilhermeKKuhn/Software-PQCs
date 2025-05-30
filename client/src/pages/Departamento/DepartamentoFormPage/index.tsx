@@ -17,6 +17,7 @@ export function DepartamentoFormPage() {
 
   const [form, setForm] = useState<IDepartamento>({
     nomeDepartamento: '',
+    sigla: '',
     responsavel: { id: 0 },
   });
 
@@ -55,6 +56,14 @@ export function DepartamentoFormPage() {
         </div>
 
         <div className="field">
+          <label>Sigla do Departamento</label>
+          <InputText
+            value={form.sigla}
+            onChange={(e) => setForm({ ...form, sigla: e.target.value })}
+          />
+        </div>
+
+        <div className="field">
           <label>Responsável</label>
           <Dropdown
             value={form.responsavel.id}
@@ -67,6 +76,7 @@ export function DepartamentoFormPage() {
             }
           />
         </div>
+        
 
         <div className="mt-4 flex gap-2">
           <Button label="Salvar" icon="pi pi-check" onClick={handleSubmit} />

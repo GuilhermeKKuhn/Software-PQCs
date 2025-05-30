@@ -50,6 +50,7 @@ export function DepartamentoPage() {
   
     const columns = [
       { field: "nomeDepartamento", header: "Departamento" },
+      { field: "sigla", header: "Sigla"},
       { field: "responsavel", header: "Responsável",
         body: (rowData: IDepartamento) => rowData?.responsavel.name
       },

@@ -13,5 +13,8 @@ public class DepartamentoDTO {
     private String nomeDepartamento;
 
     @NotNull
+    private String sigla;
+
+    @NotNull
     private User responsavel;
 }

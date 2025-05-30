@@ -62,24 +62,37 @@ public class UserService {
     public User updateUser(Long id, User updatedUserData) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + id));
-        if (updatedUserData.getUsername() != null) {
+
+        if (updatedUserData.getUsername() != null && !updatedUserData.getUsername().isBlank()) {
             existingUser.setUsername(updatedUserData.getUsername());
         }
-        if (updatedUserData.getPassword() != null) {
-            existingUser.setPassword(updatedUserData.getPassword());
+
+        if (updatedUserData.getName() != null && !updatedUserData.getName().isBlank()) {
+            existingUser.setName(updatedUserData.getName());
         }
-        if (updatedUserData.getEmail() != null) {
+
+        if (updatedUserData.getPassword() != null && !updatedUserData.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUserData.getPassword()));
+        }
+
+        if (updatedUserData.getEmail() != null && !updatedUserData.getEmail().isBlank()) {
             existingUser.setEmail(updatedUserData.getEmail());
         }
-        existingUser.setAtivo(updatedUserData.isAtivo());
+
         if (updatedUserData.getTipoPerfil() != null) {
             existingUser.setTipoPerfil(updatedUserData.getTipoPerfil());
         }
-        if (updatedUserData.getSiape() != null) {
+
+        if (updatedUserData.getSiape() != null && !updatedUserData.getSiape().isBlank()) {
             existingUser.setSiape(updatedUserData.getSiape());
         }
+
+        existingUser.setAtivo(updatedUserData.isAtivo());
+
         return userRepository.save(existingUser);
     }
+
+
 
 
 

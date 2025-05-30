@@ -1,4 +1,3 @@
--- Usuário (ADMIN)
 INSERT INTO tb_user (username, name, password, email, ativo, tipo_perfil, siape) VALUES ('admin@teste.com', 'Administrador', '$2a$12$Pw0RrSNoRtZ/somMyoQEYeZqVu27jNoKzseHU0zLllOQTJ2WBTKvC', 'admin@teste.com', true, 'ADMINISTRADOR', '0000001');
 
 -- Unidade de Medida
@@ -7,8 +6,8 @@ INSERT INTO tb_unidade_medida (nome, sigla) VALUES ('Mililitro', 'ml');
 INSERT INTO tb_unidade_medida (nome, sigla) VALUES ('Grama', 'g');
 
 -- Departamento
-INSERT INTO tb_departamento (nome_departamento, responsavel_id) VALUES ('Departamento de Química', 1);
-INSERT INTO tb_departamento (nome_departamento, responsavel_id) VALUES ('Departamento de Física', 1);
+INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Química', 'DQ', 1);
+INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Física', 'DF',1);
 
 -- Laboratório
 INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Química', 'A1', 1, 1);

@@ -20,6 +20,9 @@ public class Departamento {
     @NotNull
     private String nomeDepartamento;
 
+    @NotNull
+    private String sigla;
+
     @ManyToOne
     @JoinColumn(name = "responsavel_id", referencedColumnName = "id")
     private User responsavel;
