@@ -45,6 +45,7 @@ export function UsuarioPage() {
   
     const handleConfirmDelete = () => {
       if (selectedItemId) {
+        const usuarioDeletado = usuarios.find((u) => u.id === selectedItemId);
         UserService.deletarUser(selectedItemId).then(() => {
           setUsuarios(usuarios.filter((u) => u.id !== selectedItemId));
           setDeleteDialogVisible(false);
@@ -52,10 +53,11 @@ export function UsuarioPage() {
 
           const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-          if (Number(currentUser?.id) === Number(selectedItemId)) {
+          if (currentUser?.email === usuarioDeletado?.email) {
             AuthService.logout();
             navigate("/login");
           }
+
         });
       }
     };

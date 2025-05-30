@@ -131,8 +131,21 @@ export function UsuarioFormPage() {
         }, 1000);
       })
       .catch((err) => {
-        const backendMsg =
-          err.response?.data?.validationErrors?.password || 'Erro ao salvar usuário.';
+        const validationErrors = err.response?.data?.validationErrors;
+
+        if (validationErrors?.username) {
+          toast.current?.show({
+            severity: 'error',
+            summary: 'Email já cadastrado',
+            detail: 'Este email já está sendo utilizado por outro usuário.',
+            life: 4000,
+          });
+
+          setErrors((prev) => ({ ...prev, email: true })); // destaca o campo em vermelho
+          return;
+        }
+
+        const backendMsg = validationErrors?.password || 'Erro ao salvar usuário.';
         toast.current?.show({
           severity: 'error',
           summary: 'Erro do servidor',
