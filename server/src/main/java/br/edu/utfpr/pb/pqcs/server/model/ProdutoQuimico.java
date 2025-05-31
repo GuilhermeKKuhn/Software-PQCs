@@ -38,6 +38,10 @@ public class ProdutoQuimico {
     @NotNull
     private String estadoFisico;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private OrgaoControlador orgao;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "unidademedida_id", referencedColumnName = "id")
     private UnidadeMedida unidadeMedida;

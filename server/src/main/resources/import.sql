@@ -19,5 +19,5 @@ INSERT INTO tb_fornecedor (nome, cnpj, endereco, numero, cidade, estado, telefon
 INSERT INTO tb_fornecedor (nome, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
 
 -- Produto Químico
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'Líquido', 1);
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', 12, 'Corrosivo', 'Líquido', 2);
+INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'POLICIA_FEDERAL' , 'Líquido', 1);
+INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', 12, 'Corrosivo', 'EXERCITO','Líquido', 2);

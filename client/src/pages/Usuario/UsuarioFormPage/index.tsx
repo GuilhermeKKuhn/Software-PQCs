@@ -141,7 +141,7 @@ export function UsuarioFormPage() {
             life: 4000,
           });
 
-          setErrors((prev) => ({ ...prev, email: true })); // destaca o campo em vermelho
+          setErrors((prev) => ({ ...prev, email: true }));
           return;
         }
 
