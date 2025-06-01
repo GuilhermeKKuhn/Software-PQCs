@@ -14,9 +14,9 @@ INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel
 INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Física', 'B1', 2, 1);
 
 -- Fornecedor
-INSERT INTO tb_fornecedor (nome, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Gás', '12345678901234', 'Rua do Gás', '100', 'Pato Branco', 'PR', '(43) 98888-7777', 'gas@fornecedor.com');
-INSERT INTO tb_fornecedor (nome, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com');
-INSERT INTO tb_fornecedor (nome, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Gás', '12345678901234', 'Rua do Gás', '100', 'Pato Branco', 'PR', '(43) 98888-7777', 'gas@fornecedor.com');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
 
 -- Produto Químico
 INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'POLICIA_FEDERAL' , 'Líquido', 1);

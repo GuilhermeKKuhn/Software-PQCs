@@ -1,5 +1,11 @@
 export interface IFornecedor {
   id?: number;
-  nome: string;
+  razaoSocial: string;
   cnpj: string;
+  endereco: string;
+  numero: string;
+  cidade: string;
+  estado: string;
+  telefone: string;
+  email: string;
 }

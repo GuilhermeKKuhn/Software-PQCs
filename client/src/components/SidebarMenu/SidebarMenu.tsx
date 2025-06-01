@@ -17,7 +17,7 @@ export const SidebarMenu = () => {
       icon: "pi pi-box",
       items: [
         {
-          label: "Produtos",
+          label: "Produtos Químicos",
           icon: "pi pi-box",
           command: () => navigate("/produtos"),
         },
@@ -32,6 +32,11 @@ export const SidebarMenu = () => {
       label: "Laboratórios",
       icon: "pi pi-building",
       command: () => navigate("/laboratorios"),
+    },
+    {
+      label: "Departamentos",
+      icon: "pi pi-sitemap",
+      command: () => navigate("/departamentos"),
     },
     {
       label: "Notas Fiscais",
@@ -54,9 +59,9 @@ export const SidebarMenu = () => {
       command: () => navigate("/usuarios"),
     },
     {
-      label: "Departamentos",
-      icon: "pi pi-sitemap",
-      command: () => navigate("/departamentos"),
+      label: "Fornecedor",
+      icon: "pi pi-truck",
+      command: () => navigate("/fornecedor"),
     },
   ];
 

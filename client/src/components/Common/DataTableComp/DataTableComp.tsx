@@ -28,6 +28,7 @@ export function DataTableComp<T extends object>({
       rowsPerPageOptions={[5, 10, 20, 50]}
       stripedRows
       responsiveLayout="scroll"
+      selectionMode="single"
       {...props}
     >
       {columns.map((col) => (

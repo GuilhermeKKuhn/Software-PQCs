@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ActionButtons } from "@/components/Common/ActionButton/ActionButton";
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
-import { TableHeader } from "@/components/Common/TableHeaderProps";
+import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
 import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
 import { ActionButtonCreate } from "@/components/Common/ActionButtonCreate/ActionButtonCreate";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";

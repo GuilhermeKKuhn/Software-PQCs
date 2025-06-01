@@ -210,7 +210,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         dto.setLaboratorioDestinoId(mov.getLaboratorioDestino() != null ? mov.getLaboratorioDestino().getId() : null);
         dto.setNotaFiscal(mov.getNotaFiscal() != null ? modelMapper.map(mov.getNotaFiscal(), NotaFiscalDTO.class) : null);
 
-        // Monta o item
+
         ItemMovimentacaoDTO item = new ItemMovimentacaoDTO();
         item.setProdutoId(mov.getProduto().getId());
         item.setQuantidade(mov.getQuantidade());

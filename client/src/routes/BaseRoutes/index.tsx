@@ -21,6 +21,8 @@ import { UsuarioFormPage } from "@/pages/Usuario/UsuarioFormPage";
 import { RelatorioPage } from "@/pages/Relatorio/RelatorioPage";
 import { UnidadeMedidaPage } from "@/pages/UnidadeMedida/UnidadeMedidaPage";
 import { UnidadeMedidaFormPage } from "@/pages/UnidadeMedida/UnidadeMedidaFormPage";
+import { FornecedorPage } from "@/pages/Fornecedor/FornecedorPage";
+import { FornecedorFormPage } from "@/pages/Fornecedor/FornecedorFormPage";
 
 export function BaseRoutes() {
   return (
@@ -34,7 +36,7 @@ export function BaseRoutes() {
          <Route path="/" element={<Layout />}>
           <Route index element={<Homepage />} />
           <Route path="home" element={<Homepage />} />
-
+          
           {/* Departamentos */}
           <Route path="departamentos" element={<DepartamentoPage />} />
           <Route path="departamentos/novo" element={<DepartamentoFormPage />} />
@@ -73,6 +75,11 @@ export function BaseRoutes() {
           <Route path="usuarios" element={<UsuarioPage />} />
           <Route path="usuarios/novo" element={<UsuarioFormPage />} />
           <Route path="usuarios/:id" element={<UsuarioFormPage />} />
+
+          {/* Fornecedores*/}
+          <Route path="fornecedor" element={<FornecedorPage/>} />
+          <Route path="fornecedor/novo" element={<FornecedorFormPage/>} />
+          <Route path="fornecedor/:id" element={<FornecedorFormPage/>} />
 
           {/* Relatórios */}
           <Route path="relatorios" element={<RelatorioPage />} />

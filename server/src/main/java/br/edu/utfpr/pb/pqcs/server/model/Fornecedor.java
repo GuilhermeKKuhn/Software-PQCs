@@ -18,7 +18,7 @@ public class Fornecedor {
     private Long id;
 
     @NotNull
-    private String nome;
+    private String razaoSocial;
 
     @NotNull
     private String cnpj;

@@ -10,7 +10,7 @@ import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
 
 import UnidadeService from "@/service/UnidadeMedidaService";
 import { IUnidadeMedida } from "@/commons/UnidadeMedidaInterface";
-import { TableHeader } from "@/components/Common/TableHeaderProps";
+import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
 
 export function UnidadeMedidaPage() {
   const navigate = useNavigate();

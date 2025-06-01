@@ -23,7 +23,7 @@ public class MovimentacaoController {
     }
 
 
-    @GetMapping
+    @GetMapping("/movimentacoes/all")
     public List<MovimentacaoDTO> listar() {
         return movimentacaoService.listar();
     }
