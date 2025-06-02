@@ -1,4 +1,4 @@
-import { IProdutoQuimico } from "@/commons/ProdutoQuimicoInterface";
+import { IProdutoQuimico, LoteDisponivel } from "@/commons/ProdutoQuimicoInterface";
 import { api } from "@/lib/axios";
 
 const cadastrarProdutoQuimico = (produto: IProdutoQuimico) => {
@@ -21,12 +21,18 @@ const deletarProdutoQuimico = (id: number) => {
   return api.delete(`/produtoquimico/${id}`);
 };
 
+const buscarLotesDisponiveis = (id: number) => {
+  return api.get<LoteDisponivel[]>(`/produtoquimico/lotes-disponiveis/${id}`);
+}
+
+
 const ProdutoQuimicoService = {
   cadastrarProdutoQuimico,
   listarProdutosQuimicos,
   buscarProdutoQuimicoPorId,
   editarProdutoQuimico,
   deletarProdutoQuimico,
+  buscarLotesDisponiveis,
 };
 
 export default ProdutoQuimicoService;

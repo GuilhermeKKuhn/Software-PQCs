@@ -18,3 +18,11 @@ export interface IMovimentacao {
     nome: string;
   };
 }
+
+export interface IMovimentacaoForm {
+  tipo: "ENTRADA" | "TRANSFERENCIA" | "SAIDA";
+  notaFiscal?: INotaFiscal;
+  laboratorioOrigem?: ILaboratorio;
+  laboratorioDestino?: ILaboratorio;
+  itens: IItemMovimentacao[];
+}

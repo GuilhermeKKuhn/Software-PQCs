@@ -17,7 +17,7 @@ public class LaboratorioDTO {
     private String sala;
 
     @NotNull
-    private Departamento departamento;
+    private DepartamentoDTO departamento;
 
     @NotNull
     private User responsavel;

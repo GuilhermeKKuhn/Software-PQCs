@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { IItemMovimentacao, IMovimentacao } from "@/commons/MovimentacoesInterface";
+import { IMovimentacao } from "@/commons/MovimentacoesInterface";
 import MovimentacaoService from "@/service/MovimentacaoService";
 import { ActionButtons } from "@/components/Common/ActionButton/ActionButton";
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
@@ -9,30 +9,62 @@ import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
 import { ActionButtonCreate } from "@/components/Common/ActionButtonCreate/ActionButtonCreate";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
-import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
+import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
+import { IMovimentacaoAgrupada } from "@/commons/MovimentacaoAgrupadaInterface";
 
 export function MovimentacaoPage() {
   const navigate = useNavigate();
-  const [movimentacoes, setMovimentacoes] = useState<IMovimentacao[]>([]);
   const [search, setSearch] = useState('');
-  const [movimentacaoSelecionada, setMovimentacaoSelecionada] = useState<IMovimentacao | null>(null);
+  const [movimentacaoSelecionada, setMovimentacaoSelecionada] = useState<IMovimentacaoAgrupada | null>(null);
   const [detalhesVisivel, setDetalhesVisivel] = useState(false);
+  const [movimentacoesAgrupadas, setMovimentacoesAgrupadas] = useState<IMovimentacaoAgrupada[]>([]);
 
-  const filteredMovimentacoes = movimentacoes.filter((mov) => {
-    const termo = search.toLowerCase();
 
-    return (
-      mov.tipo?.toLowerCase().includes(termo) ||
-      mov.itens?.some(item => item.lote?.toLowerCase().includes(termo)) ||
-      String(mov.notaFiscal?.numeroNotaFiscal ?? '').includes(termo)
-    );
-  });
-
-  useEffect(() => {
-    MovimentacaoService.listarMovimentacoes().then((res) => {
-      setMovimentacoes(res.data);
+    const filteredMovimentacoes = movimentacoesAgrupadas.filter((mov) => {
+      const termo = search.toLowerCase();
+      return (
+        mov.tipo?.toLowerCase().includes(termo) ||
+        mov.itens?.some(item => item.lote?.toLowerCase().includes(termo)) ||
+        String(mov.notaFiscal?.numeroNotaFiscal ?? '').includes(termo)
+      );
     });
-  }, []);
+
+    useEffect(() => {
+      MovimentacaoService.listarMovimentacoes().then((res) => {
+        const dados: IMovimentacao[] = res.data;
+
+        const agrupadasMap = new Map<string, IMovimentacaoAgrupada>();
+
+        dados.forEach((mov) => {
+          const key = `${mov.tipo}-${mov.notaFiscal?.id ?? 'semNota'}-${mov.laboratorioDestino?.id ?? 'semDestino'}-${mov.laboratorioOrigem?.id ?? 'semOrigem'}`;
+
+          if (!agrupadasMap.has(key)) {
+            agrupadasMap.set(key, {
+              idGrupo: key,
+              tipo: mov.tipo,
+              data: mov.notaFiscal?.dataRecebimento ?? mov.dataMovimentacao ?? '',
+              notaFiscal: mov.notaFiscal,
+              laboratorioDestino: mov.laboratorioDestino,
+              laboratorioOrigem: mov.laboratorioOrigem,
+              itens: [],
+            });
+          }
+
+          const item: IItemMovimentacao = {
+            produtoId: mov.itens[0]?.produtoId ?? 0,
+            nomeProduto: mov.itens[0]?.nomeProduto ?? 'Desconhecido',
+            quantidade: mov.quantidade!,
+            lote: mov.lote!,
+            preco: mov.itens[0]?.preco ?? null
+          };
+
+          agrupadasMap.get(key)!.itens.push(item);
+        });
+
+        const agrupadas = Array.from(agrupadasMap.values());
+        setMovimentacoesAgrupadas(agrupadas); 
+      });
+    }, []);
 
   const columns = [
     { field: "tipo", header: "Tipo" },
@@ -50,22 +82,11 @@ export function MovimentacaoPage() {
       body: (row: IMovimentacao) => row.notaFiscal?.numeroNotaFiscal ?? "-"
     },
     {
-      field: "laboratorioDestino.nome",
+      field: "laboratorioDestino.nomeLaboratorio",
       header: "Destino",
-      body: (row: IMovimentacao) => row.laboratorioDestino?.nome ?? "-"
+      body: (row: IMovimentacao) => row.laboratorioDestino?.nomeLaboratorio ?? "-"
     },
-    {
-      field: "acoes",
-      header: "Ações",
-      body: (row: IMovimentacao) => (
-        <ActionButtons
-          onEdit={() => console.log("Editar movimentação", row.id)}
-          onDelete={() => console.log("Excluir movimentação", row.id)}
-        />
-      ),
-      bodyStyle: { textAlign: 'right' as const },
-      headerStyle: { textAlign: 'right' as const },
-    },
+    
   ];
 
   return (
@@ -83,7 +104,7 @@ export function MovimentacaoPage() {
         right={
           <ActionButtonCreate
             label="Nova Movimentação"
-            onClick={() => navigate("/movimentacao/nova")}
+            onClick={() => navigate("/movimentacoes/nova")}
           />
         }
       />
@@ -93,7 +114,7 @@ export function MovimentacaoPage() {
           columns={columns}
           data={filteredMovimentacoes}
           onRowClick={(e) => {
-            setMovimentacaoSelecionada(e.data as IMovimentacao);
+            setMovimentacaoSelecionada(e.data as IMovimentacaoAgrupada);
             setDetalhesVisivel(true);
           }}
         />
@@ -125,13 +146,13 @@ export function MovimentacaoPage() {
             },
             {
               label: 'Origem',
-              field: 'laboratorioOrigem.nome',
-              body: (data) => data.laboratorioOrigem?.nome ?? "-"
+              field: 'laboratorioOrigem.nomeLaboratorio',
+              body: (data) => data.laboratorioOrigem?.nomeLaboratorio ?? "-"
             },
             {
               label: 'Destino',
-              field: 'laboratorioDestino.nome',
-              body: (data) => data.laboratorioDestino?.nome ?? "-"
+              field: 'laboratorioDestino.nomeLaboratorio',
+              body: (data) => data.laboratorioDestino?.nomeLaboratorio ?? "-"
             },
             {
               label: 'Itens',
@@ -140,7 +161,7 @@ export function MovimentacaoPage() {
                 <ul>
                   {data.itens?.map((item: IItemMovimentacao, index: number) => (
                     <li key={index}>
-                      Produto #{item.produtoId} - Lote: {item.lote} - Qtd: {item.quantidade}
+                      Produto #{item.nomeProduto} - Lote: {item.lote} - Qtd: {item.quantidade}
                     </li>
                   )) ?? "Sem itens"}
                 </ul>
@@ -150,13 +171,6 @@ export function MovimentacaoPage() {
           titulo="Detalhes da Movimentação"
         />
       )}
-
-      {/* Se quiser implementar exclusão futuramente */}
-      <DeleteConfirm
-        visible={false}
-        onHide={() => {}}
-        onConfirm={() => {}}
-      />
     </div>
   );
 }

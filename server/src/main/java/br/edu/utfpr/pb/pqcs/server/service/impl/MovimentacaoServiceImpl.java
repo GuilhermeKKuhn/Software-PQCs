@@ -1,9 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.service.impl;
 
-import br.edu.utfpr.pb.pqcs.server.dto.ItemMovimentacaoDTO;
-import br.edu.utfpr.pb.pqcs.server.dto.MovimentacaoDTO;
-import br.edu.utfpr.pb.pqcs.server.dto.NotaFiscalDTO;
-import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
+import br.edu.utfpr.pb.pqcs.server.dto.*;
 import br.edu.utfpr.pb.pqcs.server.model.*;
 import br.edu.utfpr.pb.pqcs.server.repository.*;
 import br.edu.utfpr.pb.pqcs.server.service.AuthService;
@@ -47,60 +44,86 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
 
     public List<MovimentacaoDTO> realizarMovimentacoes(MovimentacaoDTO dto) {
-        // Salva a Nota Fiscal se vier nova
-        NotaFiscal notaFiscal = null;
-        if (dto.getNotaFiscal() != null && dto.getNotaFiscal().getId() == null) {
-            // Cria uma nova nota fiscal
-            NotaFiscal novaNota = new NotaFiscal();
-            novaNota.setNumeroNotaFiscal(dto.getNotaFiscal().getNumeroNotaFiscal());
-            novaNota.setDataRecebimento(dto.getNotaFiscal().getDataRecebimento());
-
-            // Fornecedor deve existir
-            Long fornecedorId = dto.getNotaFiscal().getFornecedor().getId();
-            Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
-                    .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
-            novaNota.setFornecedor(fornecedor);
-
-            notaFiscal = notaFiscalRepository.save(novaNota);
-        } else if (dto.getNotaFiscal() != null) {
-            // Usar nota já existente
-            notaFiscal = notaFiscalRepository.findById(dto.getNotaFiscal().getId())
-                    .orElseThrow(() -> new RuntimeException("Nota Fiscal não encontrada"));
+        // === Validação básica do tipo ===
+        if (dto.getTipo() == null) {
+            throw new RuntimeException("Tipo da movimentação deve ser informado.");
         }
+
+        TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
+
+        // === Validação de laboratórios ===
+        if ((tipo == TipoMovimentacao.ENTRADA || tipo == TipoMovimentacao.TRANSFERENCIA)) {
+            if (dto.getLaboratorioDestino() == null || dto.getLaboratorioDestino().getId() == null) {
+                throw new RuntimeException("Laboratório de destino é obrigatório para entrada ou transferência.");
+            }
+        }
+
+        if (tipo == TipoMovimentacao.TRANSFERENCIA) {
+            if (dto.getLaboratorioOrigem() == null || dto.getLaboratorioOrigem().getId() == null) {
+                throw new RuntimeException("Laboratório de origem é obrigatório para transferência.");
+            }
+        }
+
+        // === Validação de nota fiscal (somente para ENTRADA) ===
+        NotaFiscal notaFiscal = null;
+        if (tipo == TipoMovimentacao.ENTRADA) {
+            if (dto.getNotaFiscal() == null || dto.getNotaFiscal().getFornecedor() == null || dto.getNotaFiscal().getFornecedor().getId() == null) {
+                throw new RuntimeException("Fornecedor e nota fiscal são obrigatórios para entrada.");
+            }
+
+            if (dto.getNotaFiscal().getId() == null) {
+                // Criar nova nota
+                NotaFiscal novaNota = new NotaFiscal();
+                novaNota.setNumeroNotaFiscal(dto.getNotaFiscal().getNumeroNotaFiscal());
+                novaNota.setDataRecebimento(dto.getNotaFiscal().getDataRecebimento());
+
+                Long fornecedorId = dto.getNotaFiscal().getFornecedor().getId();
+                Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
+                        .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado."));
+                novaNota.setFornecedor(fornecedor);
+
+                notaFiscal = notaFiscalRepository.save(novaNota);
+            } else {
+                // Buscar nota existente
+                notaFiscal = notaFiscalRepository.findById(dto.getNotaFiscal().getId())
+                        .orElseThrow(() -> new RuntimeException("Nota fiscal não encontrada."));
+            }
+        }
+
+        // === Carregar laboratórios ===
+        Laboratorio origem = dto.getLaboratorioOrigem() != null && dto.getLaboratorioOrigem().getId() != null
+                ? laboratorioRepository.findById(dto.getLaboratorioOrigem().getId()).orElse(null)
+                : null;
+
+        Laboratorio destino = dto.getLaboratorioDestino() != null && dto.getLaboratorioDestino().getId() != null
+                ? laboratorioRepository.findById(dto.getLaboratorioDestino().getId()).orElse(null)
+                : null;
 
         List<MovimentacaoDTO> movimentacoesFeitas = new ArrayList<>();
 
         for (ItemMovimentacaoDTO item : dto.getItens()) {
             ProdutoQuimico produto = produtoRepository.findById(item.getProdutoId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
 
-            Laboratorio origem = dto.getLaboratorioOrigemId() != null ?
-                    laboratorioRepository.findById(dto.getLaboratorioOrigemId()).orElse(null) : null;
-
-            Laboratorio destino = dto.getLaboratorioDestinoId() != null ?
-                    laboratorioRepository.findById(dto.getLaboratorioDestinoId()).orElse(null) : null;
-
-            TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
-
-            // Calcular validade se for entrada
+            // === Calcular validade (caso ENTRADA) ===
             LocalDate validade = null;
-            if (tipo == TipoMovimentacao.ENTRADA && notaFiscal != null && produto.getValidade() != null) {
+            if (tipo == TipoMovimentacao.ENTRADA && produto.getValidade() != null && notaFiscal != null) {
                 validade = notaFiscal.getDataRecebimento().plusDays(produto.getValidade());
             }
 
-            // Salva item na tb_itensnotafiscal se for ENTRADA
+            // === Criar item da nota fiscal se for ENTRADA ===
             if (tipo == TipoMovimentacao.ENTRADA) {
                 ItensNotaFiscal itensNota = new ItensNotaFiscal();
                 itensNota.setQuantidade(item.getQuantidade().floatValue());
-                itensNota.setPreco(item.getPreco().floatValue());
+                itensNota.setPreco(item.getPreco() != null ? item.getPreco().floatValue() : 0f);
                 itensNota.setData(notaFiscal.getDataRecebimento());
                 itensNota.setLote(item.getLote());
                 itensNota.setProdutoQuimico(produto);
                 itensNota.setNotaFiscal(notaFiscal);
-                // Salva no repo de itens nota
                 itensNotaFiscalRepository.save(itensNota);
             }
 
+            // === Criar movimentação ===
             Movimentacao movimentacao = new Movimentacao();
             movimentacao.setProduto(produto);
             movimentacao.setLaboratorioOrigem(origem);
@@ -113,7 +136,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             movimentacao.setUsuario(authService.getUsuarioLogado());
             movimentacao.setValidade(validade);
 
-            // Atualiza estoque para cada item
+            // === Atualiza estoque ===
             atualizarEstoque(movimentacao);
 
             movimentacaoRepository.save(movimentacao);
@@ -122,6 +145,8 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
         return movimentacoesFeitas;
     }
+
+
 
 
     private void atualizarEstoque(Movimentacao mov) {
@@ -202,27 +227,91 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         return toDTO(movimentacao);
     }
 
-    private MovimentacaoDTO toDTO(Movimentacao mov) {
+    private MovimentacaoDTO toDTO(Movimentacao m) {
         MovimentacaoDTO dto = new MovimentacaoDTO();
-        dto.setId(mov.getId());
-        dto.setTipo(mov.getTipoMovimentacao().name());
-        dto.setLaboratorioOrigemId(mov.getLaboratorioOrigem() != null ? mov.getLaboratorioOrigem().getId() : null);
-        dto.setLaboratorioDestinoId(mov.getLaboratorioDestino() != null ? mov.getLaboratorioDestino().getId() : null);
-        dto.setNotaFiscal(mov.getNotaFiscal() != null ? modelMapper.map(mov.getNotaFiscal(), NotaFiscalDTO.class) : null);
+        dto.setId(m.getId());
+        dto.setTipo(m.getTipoMovimentacao().name());
+        dto.setQuantidade(m.getQuantidade());
+        dto.setLote(m.getLote());
+        dto.setValidade(m.getValidade());
+        dto.setDataMovimentacao(m.getDataMovimentacao());
 
+        // Nota Fiscal
+        if (m.getNotaFiscal() != null) {
+            NotaFiscal nf = m.getNotaFiscal();
+            Fornecedor fornecedor = nf.getFornecedor();
 
-        ItemMovimentacaoDTO item = new ItemMovimentacaoDTO();
-        item.setProdutoId(mov.getProduto().getId());
-        item.setQuantidade(mov.getQuantidade());
-        item.setLote(mov.getLote());
-        // Se quiser o preço, teria que buscar dos ItensNotaFiscal
+            NotaFiscalDTO nfDTO = new NotaFiscalDTO();
+            nfDTO.setId(nf.getId());
+            nfDTO.setNumeroNotaFiscal(nf.getNumeroNotaFiscal());
+            nfDTO.setDataRecebimento(nf.getDataRecebimento());
 
-        List<ItemMovimentacaoDTO> itens = new ArrayList<>();
-        itens.add(item);
-        dto.setItens(itens);
+            FornecedorDTO fDTO = new FornecedorDTO();
+            fDTO.setId(fornecedor.getId());
+            fDTO.setRazaoSocial(fornecedor.getRazaoSocial());
+            fDTO.setCnpj(fornecedor.getCnpj());
+
+            nfDTO.setFornecedor(fDTO);
+            dto.setNotaFiscal(nfDTO);
+        }
+
+        // Laboratório Origem
+        if (m.getLaboratorioOrigem() != null) {
+            Laboratorio lab = m.getLaboratorioOrigem();
+            LaboratorioDTO labDTO = new LaboratorioDTO();
+            labDTO.setId(lab.getId());
+            labDTO.setNomeLaboratorio(lab.getNomeLaboratorio());
+            labDTO.setSala(lab.getSala());
+
+            DepartamentoDTO depDTO = new DepartamentoDTO();
+            depDTO.setId(lab.getDepartamento().getId());
+            depDTO.setNomeDepartamento(lab.getDepartamento().getNomeDepartamento());
+
+            labDTO.setDepartamento(depDTO);
+            dto.setLaboratorioOrigem(labDTO);
+        }
+
+        // Laboratório Destino
+        if (m.getLaboratorioDestino() != null) {
+            Laboratorio lab = m.getLaboratorioDestino();
+
+            // Monta o DTO do Departamento
+            DepartamentoDTO depDTO = new DepartamentoDTO();
+            depDTO.setId(lab.getDepartamento().getId());
+            depDTO.setNomeDepartamento(lab.getDepartamento().getNomeDepartamento());
+
+            // Monta o DTO do Laboratório
+            LaboratorioDTO labDTO = new LaboratorioDTO();
+            labDTO.setId(lab.getId());
+            labDTO.setNomeLaboratorio(lab.getNomeLaboratorio());
+            labDTO.setSala(lab.getSala());
+            labDTO.setDepartamento(depDTO); // agora sim, objeto completo
+
+            dto.setLaboratorioDestino(labDTO);
+        }
+
+        // Usuário
+        if (m.getUsuario() != null) {
+            UserDTO uDTO = new UserDTO();
+            uDTO.setId(m.getUsuario().getId());
+            uDTO.setName(m.getUsuario().getName());
+            dto.setUsuario(uDTO);
+        }
+
+        // Item único (como você tá salvando um por vez)
+        ItemMovimentacaoDTO itemDTO = new ItemMovimentacaoDTO();
+        itemDTO.setProdutoId(m.getProduto().getId());
+        itemDTO.setNomeProduto(m.getProduto().getNome());
+        itemDTO.setQuantidade(m.getQuantidade());
+        itemDTO.setLote(m.getLote());
+        itemDTO.setPreco(null); // se não salvar preço aqui
+
+        dto.setItens(List.of(itemDTO));
 
         return dto;
     }
+
+
 
     @Override
     protected JpaRepository<Movimentacao, Long> getRepository() {

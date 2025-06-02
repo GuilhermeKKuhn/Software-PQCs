@@ -15,7 +15,6 @@ import { NotaFiscalPage } from "@/pages/NotasFiscais/NotaFiscalPage";
 import { NotaFiscalFormPage } from "@/pages/NotasFiscais/NotaFiscalFormPage";
 import { EstoquePage } from "@/pages/Estoque/EstoquePage";
 import { MovimentacaoPage } from "@/pages/Movimentacoes/MovimentacoesPage";
-import { MovimentacaoFormPage } from "@/pages/Movimentacoes/MovimentacoesFormPage";
 import { UsuarioPage } from "@/pages/Usuario/UsuarioPage";
 import { UsuarioFormPage } from "@/pages/Usuario/UsuarioFormPage";
 import { RelatorioPage } from "@/pages/Relatorio/RelatorioPage";
@@ -23,6 +22,7 @@ import { UnidadeMedidaPage } from "@/pages/UnidadeMedida/UnidadeMedidaPage";
 import { UnidadeMedidaFormPage } from "@/pages/UnidadeMedida/UnidadeMedidaFormPage";
 import { FornecedorPage } from "@/pages/Fornecedor/FornecedorPage";
 import { FornecedorFormPage } from "@/pages/Fornecedor/FornecedorFormPage";
+import MovimentacaoFormPage from "@/pages/Movimentacoes/MovimentacoesFormPage";
 
 export function BaseRoutes() {
   return (

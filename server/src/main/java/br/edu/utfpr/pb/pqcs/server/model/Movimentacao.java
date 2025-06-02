@@ -29,6 +29,7 @@ public class Movimentacao {
     private LocalDateTime dataMovimentacao;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private TipoMovimentacao tipoMovimentacao;
 
     @NotNull

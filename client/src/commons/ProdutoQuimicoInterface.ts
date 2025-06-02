@@ -16,3 +16,11 @@ export interface IProdutoQuimico {
     sigla?: string;
   };
 }
+
+
+export interface LoteDisponivel  {
+  lote: string;
+  quantidade: number;
+  validade: string;
+  laboratorioId: number;
+};

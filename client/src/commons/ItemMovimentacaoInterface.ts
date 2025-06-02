@@ -1,8 +1,8 @@
-import { IProdutoQuimico } from "./ProdutoQuimicoInterface";
-
 export interface IItemMovimentacao {
-  produto: IProdutoQuimico;
+  produtoId: number;
+  nomeProduto: string;
   quantidade: number;
   lote: string;
   preco?: number | null;
+  validade?: string;
 }
