@@ -108,7 +108,7 @@ export function CabecalhoMovimentacaoForm({
           </div>
         )}
 
-        {tipo === "TRANSFERENCIA" && (
+        {(tipo === "TRANSFERENCIA" || tipo === "SAIDA") && (
           <div className="col-md-6">
             <label className="form-label">Laboratório de Origem</label>
             <Controller

@@ -7,10 +7,10 @@ export interface IUserLogin {
 }
 
 export interface IUser{
-  id?: number; //acho que é opcional, tem que verificar isso!
+  id?: number;
   username?: string; 
   name: string;
-  password?: string;
+  password: string;
   email: string;
   ativo: boolean;
   tipoPerfil: TipoPerfil;

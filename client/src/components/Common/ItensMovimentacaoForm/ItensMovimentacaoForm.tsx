@@ -13,15 +13,23 @@ interface Props {
   tipoMovimentacao: IMovimentacaoForm["tipo"];
   onAdicionar: (item: IItemMovimentacao) => void;
   itens: IItemMovimentacao[];
+  laboratorioOrigemId?: number;
 }
 
 type LoteDisponivel = {
   lote: string;
   quantidade: number;
   validade: string;
+  laboratorioId?: number;
+  laboratorioNome?: string; // se quiser mostrar depois
 };
 
-export function ItensMovimentacaoForm({ produtos, tipoMovimentacao, onAdicionar }: Props) {
+export function ItensMovimentacaoForm({
+  produtos,
+  tipoMovimentacao,
+  onAdicionar,
+  laboratorioOrigemId,
+}: Props) {
   const [produtoId, setProdutoId] = useState<number | null>(null);
   const [lote, setLote] = useState("");
   const [quantidade, setQuantidade] = useState<number | null>(null);
@@ -33,28 +41,43 @@ export function ItensMovimentacaoForm({ produtos, tipoMovimentacao, onAdicionar 
 
   useEffect(() => {
     if ((tipoMovimentacao === "SAIDA" || tipoMovimentacao === "TRANSFERENCIA") && produtoId) {
-      ProdutoQuimicoService.buscarLotesDisponiveis(produtoId).then((res) => {
+      if (!laboratorioOrigemId) {
+        alert("Selecione o laboratório de origem primeiro.");
+        return;
+      }
+
+      ProdutoQuimicoService.buscarLotesDisponiveis(produtoId, laboratorioOrigemId).then((res) => {
         setLotesDisponiveis(res.data);
         setShowLoteDialog(true);
       });
     }
-  }, [produtoId, tipoMovimentacao]);
+  }, [produtoId, laboratorioOrigemId, tipoMovimentacao]);
 
   const handleAdicionar = () => {
-    if (produtoId && lote && quantidade !== null) {
-      const produto = produtos.find((p) => p.id === produtoId);
-      onAdicionar({
-        produtoId,
-        nomeProduto: produto?.nome ?? "",
-        lote,
-        quantidade,
-        preco: tipoMovimentacao === "ENTRADA" ? preco : null,
-      });
-      setProdutoId(null);
-      setLote("");
-      setQuantidade(null);
-      setPreco(null);
+    if (!produtoId || !lote || quantidade === null) return;
+
+    if (
+      tipoMovimentacao !== "ENTRADA" &&
+      !lotesDisponiveis.find((l) => l.lote === lote)
+    ) {
+      alert("Lote inválido para movimentação.");
+      return;
     }
+
+    const produto = produtos.find((p) => p.id === produtoId);
+
+    onAdicionar({
+      produtoId,
+      nomeProduto: produto?.nome ?? "",
+      lote,
+      quantidade,
+      preco: tipoMovimentacao === "ENTRADA" ? preco : null,
+    });
+
+    setProdutoId(null);
+    setLote("");
+    setQuantidade(null);
+    setPreco(null);
   };
 
   return (
@@ -123,8 +146,14 @@ export function ItensMovimentacaoForm({ produtos, tipoMovimentacao, onAdicionar 
               <div key={index} className="border rounded p-3 bg-light">
                 <div className="mb-2">
                   <strong>Lote:</strong> {loteDisp.lote}<br />
-                  <strong>Validade:</strong> {new Date(loteDisp.validade).toLocaleDateString()}<br />
-                  <strong>Qtd:</strong> {loteDisp.quantidade}
+                  <strong>Validade:</strong>{" "}
+                  {new Date(loteDisp.validade).toLocaleDateString()}<br />
+                  <strong>Qtd:</strong> {loteDisp.quantidade}<br />
+                  {loteDisp.laboratorioNome && (
+                    <>
+                      <strong>Lab:</strong> {loteDisp.laboratorioNome}
+                    </>
+                  )}
                 </div>
                 <div className="text-end">
                   <Button

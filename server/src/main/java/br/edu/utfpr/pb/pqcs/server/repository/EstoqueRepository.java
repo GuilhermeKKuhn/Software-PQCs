@@ -35,4 +35,23 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     GROUP BY e.lote, e.laboratorio.id
     HAVING SUM(e.quantidade) > 0""")
     List<LoteDisponivelDTO> buscarLotesDisponiveisPorProduto(@Param("produtoId") Long produtoId);
+
+    @Query("""
+    SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
+        e.lote,
+        CAST(e.quantidade AS double),
+        e.validade,
+        e.laboratorio.id
+    )
+    FROM Estoque e
+    WHERE e.produto.id = :produtoId
+      AND e.laboratorio.id = :laboratorioId
+      AND e.quantidade > 0""")
+    List<LoteDisponivelDTO> findLotesDisponiveisPorProdutoELaboratorio(
+            @Param("produtoId") Long produtoId,
+            @Param("laboratorioId") Long laboratorioId
+    );
+
+
+
 }

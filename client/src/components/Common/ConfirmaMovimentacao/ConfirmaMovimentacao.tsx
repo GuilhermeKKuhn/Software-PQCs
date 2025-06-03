@@ -9,6 +9,7 @@ import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 interface Props {
   dadosCabecalho: IMovimentacaoForm;
   itens: IItemMovimentacao[];
+  validarCabecalho: () => boolean;
 }
 
 export function ConfirmarMovimentacao({ dadosCabecalho, itens }: Props) {
@@ -48,7 +49,7 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens }: Props) {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="container mt-4">
       <Toast ref={toast} />

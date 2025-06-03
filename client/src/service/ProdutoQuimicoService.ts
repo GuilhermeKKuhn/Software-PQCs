@@ -21,9 +21,10 @@ const deletarProdutoQuimico = (id: number) => {
   return api.delete(`/produtoquimico/${id}`);
 };
 
-const buscarLotesDisponiveis = (id: number) => {
-  return api.get<LoteDisponivel[]>(`/produtoquimico/lotes-disponiveis/${id}`);
+const buscarLotesDisponiveis = (produtoId: number, laboratorioId: number) => {
+  return api.get(`/estoques/lotes-disponiveis?produtoId=${produtoId}&laboratorioId=${laboratorioId}`);
 }
+
 
 
 const ProdutoQuimicoService = {

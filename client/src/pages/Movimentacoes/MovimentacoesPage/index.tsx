@@ -11,6 +11,7 @@ import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 import { IMovimentacaoAgrupada } from "@/commons/MovimentacaoAgrupadaInterface";
+import { IUser } from "@/commons/UserInterfaces";
 
 export function MovimentacaoPage() {
   const navigate = useNavigate();
@@ -19,74 +20,75 @@ export function MovimentacaoPage() {
   const [detalhesVisivel, setDetalhesVisivel] = useState(false);
   const [movimentacoesAgrupadas, setMovimentacoesAgrupadas] = useState<IMovimentacaoAgrupada[]>([]);
 
+  const filteredMovimentacoes = movimentacoesAgrupadas.filter((mov) => {
+    const termo = search.toLowerCase();
+    return (
+      mov.tipo?.toLowerCase().includes(termo) ||
+      mov.itens?.some(item => item.lote?.toLowerCase().includes(termo)) ||
+      String(mov.notaFiscal?.numeroNotaFiscal ?? '').includes(termo)
+    );
+  });
 
-    const filteredMovimentacoes = movimentacoesAgrupadas.filter((mov) => {
-      const termo = search.toLowerCase();
-      return (
-        mov.tipo?.toLowerCase().includes(termo) ||
-        mov.itens?.some(item => item.lote?.toLowerCase().includes(termo)) ||
-        String(mov.notaFiscal?.numeroNotaFiscal ?? '').includes(termo)
-      );
-    });
+  useEffect(() => {
+    MovimentacaoService.listarMovimentacoes().then((res) => {
+      const dados: IMovimentacao[] = res.data;
 
-    useEffect(() => {
-      MovimentacaoService.listarMovimentacoes().then((res) => {
-        const dados: IMovimentacao[] = res.data;
+      const agrupadasMap = new Map<string, IMovimentacaoAgrupada>();
 
-        const agrupadasMap = new Map<string, IMovimentacaoAgrupada>();
+      dados.forEach((mov) => {
+        const key = `${mov.tipo}-${mov.notaFiscal?.id ?? 'semNota'}-${mov.laboratorioDestino?.id ?? 'semDestino'}-${mov.laboratorioOrigem?.id ?? 'semOrigem'}`;
 
-        dados.forEach((mov) => {
-          const key = `${mov.tipo}-${mov.notaFiscal?.id ?? 'semNota'}-${mov.laboratorioDestino?.id ?? 'semDestino'}-${mov.laboratorioOrigem?.id ?? 'semOrigem'}`;
+        if (!agrupadasMap.has(key)) {
+          agrupadasMap.set(key, {
+            idGrupo: key,
+            tipo: mov.tipo,
+            data: mov.dataMovimentacao ?? mov.notaFiscal?.dataRecebimento ?? '',
+            notaFiscal: mov.notaFiscal,
+            laboratorioDestino: mov.laboratorioDestino,
+            laboratorioOrigem: mov.laboratorioOrigem,
+            usuario: mov.usuario,
+            itens: [],
+          });
+        }
 
-          if (!agrupadasMap.has(key)) {
-            agrupadasMap.set(key, {
-              idGrupo: key,
-              tipo: mov.tipo,
-              data: mov.notaFiscal?.dataRecebimento ?? mov.dataMovimentacao ?? '',
-              notaFiscal: mov.notaFiscal,
-              laboratorioDestino: mov.laboratorioDestino,
-              laboratorioOrigem: mov.laboratorioOrigem,
-              itens: [],
-            });
-          }
+        const item: IItemMovimentacao = {
+          produtoId: mov.itens[0]?.produtoId ?? 0,
+          nomeProduto: mov.itens[0]?.nomeProduto ?? 'Desconhecido',
+          quantidade: mov.quantidade!,
+          lote: mov.lote!,
+          preco: mov.itens[0]?.preco ?? null
+        };
 
-          const item: IItemMovimentacao = {
-            produtoId: mov.itens[0]?.produtoId ?? 0,
-            nomeProduto: mov.itens[0]?.nomeProduto ?? 'Desconhecido',
-            quantidade: mov.quantidade!,
-            lote: mov.lote!,
-            preco: mov.itens[0]?.preco ?? null
-          };
-
-          agrupadasMap.get(key)!.itens.push(item);
-        });
-
-        const agrupadas = Array.from(agrupadasMap.values());
-        setMovimentacoesAgrupadas(agrupadas); 
+        agrupadasMap.get(key)!.itens.push(item);
       });
-    }, []);
+
+      const agrupadas = Array.from(agrupadasMap.values());
+      setMovimentacoesAgrupadas(agrupadas);
+    });
+  }, []);
 
   const columns = [
     { field: "tipo", header: "Tipo" },
     {
       field: "data",
       header: "Data",
-      body: (row: IMovimentacao) =>
-        row.notaFiscal?.dataRecebimento
-          ? new Date(row.notaFiscal.dataRecebimento).toLocaleDateString("pt-BR")
-          : "-"
+      body: (row: IMovimentacaoAgrupada) =>
+        row.data ? new Date(row.data).toLocaleDateString("pt-BR") : "-"
     },
     {
       field: "notaFiscal.numeroNotaFiscal",
       header: "Nota Fiscal",
-      body: (row: IMovimentacao) => row.notaFiscal?.numeroNotaFiscal ?? "-"
+      body: (row: IMovimentacaoAgrupada) => row.notaFiscal?.numeroNotaFiscal ?? "-"
     },
     {
       field: "laboratorioDestino.nomeLaboratorio",
       header: "Destino",
-      body: (row: IMovimentacao) => row.laboratorioDestino?.nomeLaboratorio ?? "-"
+      body: (row: IMovimentacaoAgrupada) => row.laboratorioDestino?.nomeLaboratorio ?? "-"
     },
-    
+    {
+      field: "usuario.name", header: "Usuario",
+      body: (row: IMovimentacaoAgrupada) => row.usuario?.name ?? "-"
+    }
   ];
 
   return (
@@ -129,11 +131,9 @@ export function MovimentacaoPage() {
             { label: 'Tipo', field: 'tipo' },
             {
               label: 'Data',
-              field: 'notaFiscal.dataRecebimento',
+              field: 'data',
               body: (data) =>
-                data.notaFiscal?.dataRecebimento
-                  ? new Date(data.notaFiscal.dataRecebimento).toLocaleDateString("pt-BR")
-                  : "-"
+                data.data ? new Date(data.data).toLocaleDateString("pt-BR") : "-"
             },
             {
               label: 'Nota Fiscal',

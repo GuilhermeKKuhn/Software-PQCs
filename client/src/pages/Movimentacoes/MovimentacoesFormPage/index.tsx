@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Toast } from "primereact/toast";
 import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 import { CabecalhoMovimentacaoForm } from "@/components/Common/CabecalhoMovimentacaoForm/CabecalhoMovimentacaoForm";
@@ -26,7 +27,7 @@ export default function MovimentacaoFormPage() {
   });
 
   const tipoMovimentacao = watch("tipo");
-
+  const toast = useRef<Toast>(null);
   const [fornecedores, setFornecedores] = useState([]);
   const [laboratorios, setLaboratorios] = useState([]);
   const [produtos, setProdutos] = useState([]);
@@ -46,8 +47,32 @@ export default function MovimentacaoFormPage() {
     setItens(itens.filter((_, i) => i !== index));
   };
 
+  const validarCabecalho = (): boolean => {
+  if (!tipoMovimentacao) return false;
+
+  if (tipoMovimentacao === "TRANSFERENCIA") {
+    const origem = watch("laboratorioOrigem.id");
+    const destino = watch("laboratorioDestino.id");
+    if (!origem || !destino || origem === destino) {
+      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Laboratórios de origem e destino devem ser diferentes." });
+      return false;
+    }
+  }
+
+  if (tipoMovimentacao === "ENTRADA") {
+    const fornecedor = watch("notaFiscal.fornecedor.id");
+    if (!fornecedor) {
+      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Fornecedor é obrigatório." });
+      return false;
+    }
+  }
+
+  return true;
+};
+
   return (
     <div className="p-4 space-y-6">
+      <Toast ref={toast} />
       <CabecalhoMovimentacaoForm
         control={control}
         watch={watch}
@@ -60,6 +85,7 @@ export default function MovimentacaoFormPage() {
         produtos={produtos}
         onAdicionar={adicionarItem}
         itens={itens}
+        laboratorioOrigemId={watch("laboratorioOrigem.id")}
       />
 
       <ListaItensMovimentacao
@@ -67,12 +93,11 @@ export default function MovimentacaoFormPage() {
         onRemove={removerItem}
       />
 
-      <div className="w-full flex justify-end mt-4">
-        <ConfirmarMovimentacao
-          dadosCabecalho={{ ...watch(), itens }}
-          itens={itens}
-        />
-      </div>
+      <ConfirmarMovimentacao
+        dadosCabecalho={{ ...watch(), itens }}
+        itens={itens}
+        validarCabecalho={validarCabecalho}
+      />
 
     </div>
   );

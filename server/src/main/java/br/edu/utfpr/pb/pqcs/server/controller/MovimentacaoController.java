@@ -32,4 +32,6 @@ public class MovimentacaoController {
     public MovimentacaoDTO buscarPorId(@PathVariable Long id) {
         return movimentacaoService.buscarPorId(id);
     }
+
+    
 }

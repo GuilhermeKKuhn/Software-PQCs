@@ -44,186 +44,192 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
 
     public List<MovimentacaoDTO> realizarMovimentacoes(MovimentacaoDTO dto) {
-        // === Validação básica do tipo ===
-        if (dto.getTipo() == null) {
-            throw new RuntimeException("Tipo da movimentação deve ser informado.");
-        }
+        if (dto.getTipo() == null) throw new RuntimeException("Tipo da movimentação deve ser informado.");
 
         TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
+        validarLaboratorios(dto, tipo);
 
-        // === Validação de laboratórios ===
-        if ((tipo == TipoMovimentacao.ENTRADA || tipo == TipoMovimentacao.TRANSFERENCIA)) {
-            if (dto.getLaboratorioDestino() == null || dto.getLaboratorioDestino().getId() == null) {
-                throw new RuntimeException("Laboratório de destino é obrigatório para entrada ou transferência.");
-            }
+        NotaFiscal notaFiscal = tipo == TipoMovimentacao.ENTRADA ? criarNotaFiscalSeNecessario(dto) : null;
+        Laboratorio origem = buscarLaboratorio(dto.getLaboratorioOrigem());
+        Laboratorio destino = buscarLaboratorio(dto.getLaboratorioDestino());
+
+        return criarMovimentacoes(dto.getItens(), tipo, origem, destino, notaFiscal);
+    }
+
+    private void validarLaboratorios(MovimentacaoDTO dto, TipoMovimentacao tipo) {
+        if ((tipo == TipoMovimentacao.ENTRADA || tipo == TipoMovimentacao.TRANSFERENCIA) && (dto.getLaboratorioDestino() == null || dto.getLaboratorioDestino().getId() == null)) {
+            throw new RuntimeException("Laboratório de destino é obrigatório.");
+        }
+        if (tipo == TipoMovimentacao.TRANSFERENCIA && (dto.getLaboratorioOrigem() == null || dto.getLaboratorioOrigem().getId() == null)) {
+            throw new RuntimeException("Laboratório de origem é obrigatório para transferência.");
+        }
+        if (tipo == TipoMovimentacao.TRANSFERENCIA && dto.getLaboratorioOrigem().getId().equals(dto.getLaboratorioDestino().getId())) {
+            throw new RuntimeException("Laboratório de origem e destino devem ser diferentes.");
+        }
+    }
+
+    private NotaFiscal criarNotaFiscalSeNecessario(MovimentacaoDTO dto) {
+        if (dto.getNotaFiscal() == null || dto.getNotaFiscal().getFornecedor() == null || dto.getNotaFiscal().getFornecedor().getId() == null) {
+            throw new RuntimeException("Fornecedor e nota fiscal são obrigatórios para entrada.");
         }
 
-        if (tipo == TipoMovimentacao.TRANSFERENCIA) {
-            if (dto.getLaboratorioOrigem() == null || dto.getLaboratorioOrigem().getId() == null) {
-                throw new RuntimeException("Laboratório de origem é obrigatório para transferência.");
-            }
+        if (dto.getNotaFiscal().getId() != null) {
+            return notaFiscalRepository.findById(dto.getNotaFiscal().getId())
+                    .orElseThrow(() -> new RuntimeException("Nota fiscal não encontrada."));
         }
 
-        // === Validação de nota fiscal (somente para ENTRADA) ===
-        NotaFiscal notaFiscal = null;
-        if (tipo == TipoMovimentacao.ENTRADA) {
-            if (dto.getNotaFiscal() == null || dto.getNotaFiscal().getFornecedor() == null || dto.getNotaFiscal().getFornecedor().getId() == null) {
-                throw new RuntimeException("Fornecedor e nota fiscal são obrigatórios para entrada.");
-            }
+        NotaFiscal novaNota = new NotaFiscal();
+        novaNota.setNumeroNotaFiscal(dto.getNotaFiscal().getNumeroNotaFiscal());
+        novaNota.setDataRecebimento(dto.getNotaFiscal().getDataRecebimento());
+        novaNota.setFornecedor(
+                fornecedorRepository.findById(dto.getNotaFiscal().getFornecedor().getId())
+                        .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado."))
+        );
 
-            if (dto.getNotaFiscal().getId() == null) {
-                // Criar nova nota
-                NotaFiscal novaNota = new NotaFiscal();
-                novaNota.setNumeroNotaFiscal(dto.getNotaFiscal().getNumeroNotaFiscal());
-                novaNota.setDataRecebimento(dto.getNotaFiscal().getDataRecebimento());
+        return notaFiscalRepository.save(novaNota);
+    }
 
-                Long fornecedorId = dto.getNotaFiscal().getFornecedor().getId();
-                Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
-                        .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado."));
-                novaNota.setFornecedor(fornecedor);
-
-                notaFiscal = notaFiscalRepository.save(novaNota);
-            } else {
-                // Buscar nota existente
-                notaFiscal = notaFiscalRepository.findById(dto.getNotaFiscal().getId())
-                        .orElseThrow(() -> new RuntimeException("Nota fiscal não encontrada."));
-            }
-        }
-
-        // === Carregar laboratórios ===
-        Laboratorio origem = dto.getLaboratorioOrigem() != null && dto.getLaboratorioOrigem().getId() != null
-                ? laboratorioRepository.findById(dto.getLaboratorioOrigem().getId()).orElse(null)
+    private Laboratorio buscarLaboratorio(LaboratorioDTO labDTO) {
+        return labDTO != null && labDTO.getId() != null
+                ? laboratorioRepository.findById(labDTO.getId()).orElse(null)
                 : null;
+    }
 
-        Laboratorio destino = dto.getLaboratorioDestino() != null && dto.getLaboratorioDestino().getId() != null
-                ? laboratorioRepository.findById(dto.getLaboratorioDestino().getId()).orElse(null)
-                : null;
+    private List<MovimentacaoDTO> criarMovimentacoes(List<ItemMovimentacaoDTO> itens, TipoMovimentacao tipo, Laboratorio origem, Laboratorio destino, NotaFiscal notaFiscal) {
+        List<MovimentacaoDTO> result = new ArrayList<>();
 
-        List<MovimentacaoDTO> movimentacoesFeitas = new ArrayList<>();
-
-        for (ItemMovimentacaoDTO item : dto.getItens()) {
+        for (ItemMovimentacaoDTO item : itens) {
             ProdutoQuimico produto = produtoRepository.findById(item.getProdutoId())
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
 
-            // === Calcular validade (caso ENTRADA) ===
             LocalDate validade = null;
+
+            // Se for TRANSFERENCIA, pega validade e nota da origem
+            if (tipo == TipoMovimentacao.TRANSFERENCIA) {
+                Estoque estoqueOrigem = estoqueRepository.findByProdutoAndLaboratorioAndLote(produto, origem, item.getLote())
+                        .orElseThrow(() -> new RuntimeException("Estoque de origem não encontrado."));
+
+                validade = estoqueOrigem.getValidade() != null ? estoqueOrigem.getValidade().toLocalDate() : null;
+                notaFiscal = estoqueOrigem.getNotaFiscal(); // pode ser null, mas mantém se houver
+            }
+
             if (tipo == TipoMovimentacao.ENTRADA && produto.getValidade() != null && notaFiscal != null) {
                 validade = notaFiscal.getDataRecebimento().plusDays(produto.getValidade());
             }
 
-            // === Criar item da nota fiscal se for ENTRADA ===
             if (tipo == TipoMovimentacao.ENTRADA) {
-                ItensNotaFiscal itensNota = new ItensNotaFiscal();
-                itensNota.setQuantidade(item.getQuantidade().floatValue());
-                itensNota.setPreco(item.getPreco() != null ? item.getPreco().floatValue() : 0f);
-                itensNota.setData(notaFiscal.getDataRecebimento());
-                itensNota.setLote(item.getLote());
-                itensNota.setProdutoQuimico(produto);
-                itensNota.setNotaFiscal(notaFiscal);
-                itensNotaFiscalRepository.save(itensNota);
+                criarItemNotaFiscal(notaFiscal, produto, item);
             }
 
-            // === Criar movimentação ===
-            Movimentacao movimentacao = new Movimentacao();
-            movimentacao.setProduto(produto);
-            movimentacao.setLaboratorioOrigem(origem);
-            movimentacao.setLaboratorioDestino(destino);
-            movimentacao.setQuantidade(item.getQuantidade());
-            movimentacao.setTipoMovimentacao(tipo);
-            movimentacao.setDataMovimentacao(LocalDateTime.now());
-            movimentacao.setLote(item.getLote());
-            movimentacao.setNotaFiscal(notaFiscal);
-            movimentacao.setUsuario(authService.getUsuarioLogado());
-            movimentacao.setValidade(validade);
-
-            // === Atualiza estoque ===
+            Movimentacao movimentacao = criarMovimentacao(item, produto, origem, destino, notaFiscal, validade, tipo);
             atualizarEstoque(movimentacao);
 
             movimentacaoRepository.save(movimentacao);
-            movimentacoesFeitas.add(toDTO(movimentacao));
+            result.add(toDTO(movimentacao));
         }
 
-        return movimentacoesFeitas;
+        return result;
     }
 
 
+    private void criarItemNotaFiscal(NotaFiscal nf, ProdutoQuimico produto, ItemMovimentacaoDTO item) {
+        ItensNotaFiscal inf = new ItensNotaFiscal();
+        inf.setQuantidade(item.getQuantidade().floatValue());
+        inf.setPreco(item.getPreco() != null ? item.getPreco().floatValue() : 0f);
+        inf.setData(nf.getDataRecebimento());
+        inf.setLote(item.getLote());
+        inf.setProdutoQuimico(produto);
+        inf.setNotaFiscal(nf);
+        itensNotaFiscalRepository.save(inf);
+    }
+
+    private Movimentacao criarMovimentacao(ItemMovimentacaoDTO item, ProdutoQuimico produto, Laboratorio origem, Laboratorio destino, NotaFiscal nf, LocalDate validade, TipoMovimentacao tipo) {
+        Movimentacao m = new Movimentacao();
+        m.setProduto(produto);
+        m.setLaboratorioOrigem(origem);
+        m.setLaboratorioDestino(destino);
+        m.setQuantidade(item.getQuantidade());
+        m.setTipoMovimentacao(tipo);
+        m.setDataMovimentacao(LocalDateTime.now());
+        m.setLote(item.getLote());
+        m.setNotaFiscal(nf);
+        m.setUsuario(authService.getUsuarioLogado());
+        m.setValidade(validade);
+        return m;
+    }
 
 
     private void atualizarEstoque(Movimentacao mov) {
         ProdutoQuimico produto = mov.getProduto();
+        Laboratorio origem = mov.getLaboratorioOrigem();
+        Laboratorio destino = mov.getLaboratorioDestino();
+        String lote = mov.getLote();
+        Double quantidade = mov.getQuantidade();
 
         switch (mov.getTipoMovimentacao()) {
-            case ENTRADA:
-                processarEntrada(produto, mov.getLaboratorioDestino(), mov);
-                break;
-            case SAIDA:
-                processarSaida(produto, mov.getLaboratorioOrigem(), mov.getQuantidade());
-                break;
-            case TRANSFERENCIA:
-                processarSaida(produto, mov.getLaboratorioOrigem(), mov.getQuantidade());
-                processarEntrada(produto, mov.getLaboratorioDestino(), mov);
-                break;
+            case ENTRADA -> {
+                processarEntrada(produto, destino, mov);
+            }
+
+            case SAIDA -> {
+                processarSaida(produto, origem, lote, quantidade);
+            }
+
+            case TRANSFERENCIA -> {
+                // Remove do estoque de origem (lote existente)
+                processarSaida(produto, origem, lote, quantidade);
+                // Adiciona no destino, mantendo validade e nota fiscal — já setados na Movimentacao
+                processarEntrada(produto, destino, mov);
+            }
         }
     }
 
     private void processarEntrada(ProdutoQuimico produto, Laboratorio laboratorio, Movimentacao mov) {
         if (laboratorio == null) throw new RuntimeException("Laboratório de destino não informado.");
 
-        Estoque estoque = estoqueRepository.findByProdutoAndLaboratorioAndLote(
-                produto, laboratorio, mov.getLote()
-        ).orElseGet(() -> {
-            Estoque novo = new Estoque();
-            novo.setProduto(produto);
-            novo.setLaboratorio(laboratorio);
-            novo.setLote(mov.getLote());
-            novo.setQuantidade(0.0F);
-            novo.setNotaFiscal(mov.getNotaFiscal());
-            novo.setValidade(mov.getValidade() != null ? mov.getValidade().atStartOfDay() : null);
-            return novo;
-        });
-
+        Estoque estoque = estoqueRepository.findByProdutoAndLaboratorioAndLote(produto, laboratorio, mov.getLote())
+                .orElseGet(() -> {
+                    Estoque novo = new Estoque();
+                    novo.setProduto(produto);
+                    novo.setLaboratorio(laboratorio);
+                    novo.setLote(mov.getLote());
+                    novo.setQuantidade(0.0F);
+                    novo.setNotaFiscal(mov.getNotaFiscal());
+                    // Aqui definimos a validade apenas se for uma nova entrada
+                    novo.setValidade(mov.getValidade() != null ? mov.getValidade().atStartOfDay() : null);
+                    return novo;
+                });
         estoque.setQuantidade((float) (estoque.getQuantidade() + mov.getQuantidade()));
-        // Atualiza validade se for maior que o atual
-        if (mov.getValidade() != null) {
-            estoque.setValidade(mov.getValidade().atStartOfDay());
-        }
+
         estoqueRepository.save(estoque);
     }
 
 
-    private void processarSaida(ProdutoQuimico produto, Laboratorio laboratorio, Double quantidade) {
+    private void processarSaida(ProdutoQuimico produto, Laboratorio laboratorio, String lote, Double quantidade) {
         if (laboratorio == null) throw new RuntimeException("Laboratório de origem não informado.");
 
-        List<Estoque> estoques = estoqueRepository
-                .findByProdutoAndLaboratorioOrderByValidadeAsc(produto, laboratorio);
+        Estoque estoque = estoqueRepository.findByProdutoAndLaboratorioAndLote(produto, laboratorio, lote)
+                .orElseThrow(() -> new RuntimeException("Estoque não encontrado para o lote informado."));
 
-        double restante = quantidade;
-
-        for (Estoque estoque : estoques) {
-            if (estoque.getQuantidade() <= 0) continue;
-
-            double consumir = Math.min(estoque.getQuantidade(), restante);
-            estoque.setQuantidade((float) (estoque.getQuantidade() - consumir));
-            restante -= consumir;
-            estoqueRepository.save(estoque);
-
-            if (restante <= 0) break;
+        if (estoque.getQuantidade() < quantidade) {
+            throw new RuntimeException("Quantidade insuficiente no estoque para o lote informado.");
         }
 
-        if (restante > 0) {
-            throw new RuntimeException("Estoque insuficiente para o produto.");
-        }
+        estoque.setQuantidade((float) (estoque.getQuantidade() - quantidade));
+        estoqueRepository.save(estoque);
     }
 
     public List<MovimentacaoDTO> listar() {
-        return movimentacaoRepository.findAll().stream()
+        List<Movimentacao> movimentacoes = movimentacaoRepository.findAll();
+        return movimentacoes.stream()
                 .map(this::toDTO)
                 .toList();
     }
 
+
     public MovimentacaoDTO buscarPorId(Long id) {
         Movimentacao movimentacao = movimentacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movimentação não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Movimentação não encontrada."));
         return toDTO(movimentacao);
     }
 
