@@ -1,5 +1,7 @@
 package br.edu.utfpr.pb.pqcs.server.repository;
 
+import br.edu.utfpr.pb.pqcs.server.dto.EstoqueLoteDTO;
+import br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO;
 import br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO;
 import br.edu.utfpr.pb.pqcs.server.model.Estoque;
 import br.edu.utfpr.pb.pqcs.server.model.Laboratorio;
@@ -28,8 +30,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
-        e.lote, SUM(e.quantidade), MAX(e.validade), e.laboratorio.id
-    )
+        e.lote, SUM(e.quantidade), MAX(e.validade), e.laboratorio.id)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
     GROUP BY e.lote, e.laboratorio.id
@@ -41,8 +42,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
         e.lote,
         CAST(e.quantidade AS double),
         e.validade,
-        e.laboratorio.id
-    )
+        e.laboratorio.id)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
       AND e.laboratorio.id = :laboratorioId
@@ -51,6 +51,21 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
             @Param("produtoId") Long produtoId,
             @Param("laboratorioId") Long laboratorioId
     );
+
+    @Query("""
+    SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
+        e.produto.id, e.produto.nome, SUM(e.quantidade))
+    FROM Estoque e
+    GROUP BY e.produto.id, e.produto.nome""")
+    List<EstoqueProdutoDTO> listarResumoPorProduto();
+
+    @Query("""
+    SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueLoteDTO(
+        e.lote, e.validade, CAST(e.quantidade AS double), e.laboratorio.nomeLaboratorio)
+    FROM Estoque e
+    WHERE e.produto.id = :produtoId AND e.quantidade > 0
+    ORDER BY e.validade ASC""")
+    List<EstoqueLoteDTO> listarLotesPorProduto(@Param("produtoId") Long produtoId);
 
 
 

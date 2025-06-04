@@ -108,7 +108,7 @@ export function FornecedorPage() {
         }
         right={
           <ActionButtonCreate
-            label="Nova Unidade"
+            label="Novo Fornecedor"
             onClick={() => navigate("/fornecedor/novo")}
           />
         }
@@ -133,7 +133,7 @@ export function FornecedorPage() {
             { label: 'E-mail', field: 'email' },
             { label: 'Cidade', field: 'cidade' },
             { label: 'Endereco', field: 'endereco' },
-            { label: 'Número', field: 'numero ' },
+            { label: 'Número', field: 'numero' },
             { label: 'UF', field: 'estado' },
             { label: 'Telefone', field: 'telefone' },
          ]}

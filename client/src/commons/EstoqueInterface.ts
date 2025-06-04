@@ -8,4 +8,5 @@ export interface IEstoqueLote {
   lote: string;
   validade: string;
   quantidade: number;
+  laboratorio: string;
 }

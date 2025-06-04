@@ -158,13 +158,20 @@ export function MovimentacaoPage() {
               label: 'Itens',
               field: 'itens',
               body: (data) => (
-                <ul>
-                  {data.itens?.map((item: IItemMovimentacao, index: number) => (
-                    <li key={index}>
-                      Produto #{item.nomeProduto} - Lote: {item.lote} - Qtd: {item.quantidade}
-                    </li>
-                  )) ?? "Sem itens"}
-                </ul>
+                <div className="mt-2">
+                  {data.itens?.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="mb-2 p-2 border rounded bg-light shadow-sm"
+                    >
+                      <strong>{item.nomeProduto}</strong>
+                      <div className="small text-muted">
+                        <span className="me-3">Lote: <strong>{item.lote}</strong></span>
+                        <span>Qtd: <strong>{item.quantidade}</strong></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )
             }
           ]}

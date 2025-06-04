@@ -6,3 +6,9 @@ export interface INotaFiscal {
   dataRecebimento: string;
   fornecedor: IFornecedor;
 }
+
+export interface IItemNota {
+  nomeProduto: string;
+  lote: string;
+  quantidade: number;
+}
