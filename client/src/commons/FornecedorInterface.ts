@@ -1,5 +1,5 @@
 export interface IFornecedor {
-  id?: number;
+  id: number;
   razaoSocial: string;
   cnpj: string;
   endereco: string;

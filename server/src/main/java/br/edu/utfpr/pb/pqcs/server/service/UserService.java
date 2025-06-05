@@ -1,6 +1,11 @@
 package br.edu.utfpr.pb.pqcs.server.service;
 
+import br.edu.utfpr.pb.pqcs.server.dto.UserDTO;
+import br.edu.utfpr.pb.pqcs.server.model.Departamento;
+import br.edu.utfpr.pb.pqcs.server.model.Laboratorio;
 import br.edu.utfpr.pb.pqcs.server.model.User;
+import br.edu.utfpr.pb.pqcs.server.repository.DepartamentoRepository;
+import br.edu.utfpr.pb.pqcs.server.repository.LaboratorioRepository;
 import br.edu.utfpr.pb.pqcs.server.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,11 +17,39 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LaboratorioRepository laboratorioRepository;
+    private final DepartamentoRepository departamentoRepository;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder, LaboratorioRepository laboratorioRepository, DepartamentoRepository departamentoRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.laboratorioRepository = laboratorioRepository;
+        this.departamentoRepository = departamentoRepository;
+    }
+
+    public UserDTO getUserDTO(User user) {
+        UserDTO dto = new UserDTO(user);
+
+        // Departamentos
+        List<Departamento> departamentos = departamentoRepository.findAllByResponsavelId(user.getId());
+        dto.setDepartamentosId(
+                departamentos.stream().map(Departamento::getId).toList()
+        );
+        dto.setNomesDepartamentos(
+                departamentos.stream().map(Departamento::getNomeDepartamento).toList()
+        );
+
+        // Laboratórios
+        List<Laboratorio> laboratorios = laboratorioRepository.findAllByResponsavelId(user.getId());
+        dto.setLaboratoriosId(
+                laboratorios.stream().map(Laboratorio::getId).toList()
+        );
+        dto.setNomesLaboratorios(
+                laboratorios.stream().map(Laboratorio::getNomeLaboratorio).toList()
+        );
+
+        return dto;
     }
 
     public User save(User user) {

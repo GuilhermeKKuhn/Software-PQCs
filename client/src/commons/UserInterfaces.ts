@@ -16,3 +16,17 @@ export interface IUser{
   tipoPerfil: TipoPerfil;
   siape: string;    
 }
+
+export interface IUserDTO {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  ativo: boolean;
+  tipoPerfil: "ADMINISTRADOR" | "RESPONSAVEL_DEPARTAMENTO" | "RESPONSAVEL_LABORATORIO";
+  siape: string;
+  laboratoriosId: number[];
+  nomesLaboratorios: string[];
+  departamentosId: number[];
+  nomesDepartamentos: string[];
+}

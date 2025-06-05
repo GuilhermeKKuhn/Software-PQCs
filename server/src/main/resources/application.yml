@@ -2,7 +2,7 @@ server:
   port: 8025
 spring:
   profiles:
-    active: dev
+    active: dev-postgres
   jpa:
     properties:
       javax:
@@ -30,4 +30,4 @@ spring:
     password: 123
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update

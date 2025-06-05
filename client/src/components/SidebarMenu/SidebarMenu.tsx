@@ -1,17 +1,22 @@
 import { PanelMenu } from "primereact/panelmenu";
+import { MenuItem } from "primereact/menuitem";
 import { useNavigate } from "react-router-dom";
-import "./SideBarMenu.css"
-
+import "./SideBarMenu.css";
+import AuthService from "@/service/AuthService";
 
 export const SidebarMenu = () => {
   const navigate = useNavigate();
+  const role = AuthService.getUserRole(); // ex: "ROLE_ADMINISTRADOR"
 
-  const items = [
+  const commonItems: MenuItem[] = [
     {
       label: "Página Inicial",
       icon: "pi pi-home",
       command: () => navigate("/home"),
     },
+  ];
+
+  const adminItems: MenuItem[] = [
     {
       label: "Produtos",
       icon: "pi pi-box",
@@ -64,6 +69,61 @@ export const SidebarMenu = () => {
       command: () => navigate("/fornecedor"),
     },
   ];
+
+    const responsavelLabItems: MenuItem[] = [
+    {
+      label: "Estoque",
+      icon: "pi pi-database",
+      command: () => navigate("/estoque"),
+    },
+    {
+      label: "Movimentações",
+      icon: "pi pi-sync",
+      command: () => navigate("/movimentacoes/saida"),
+    },
+    {
+      label: "Nova Solicitação",
+      icon: "pi pi-send",
+      command: () => navigate("/solicitacoes/nova"),
+    },
+  ];
+
+  const responsavelDepItems: MenuItem[] = [
+    {
+      label: "Estoques dos Laboratórios",
+      icon: "pi pi-database",
+      command: () => navigate("/estoque"),
+    },
+    {
+      label: "Movimentações",
+      icon: "pi pi-sync",
+      command: () => navigate("/movimentacoes/saida"),
+    },
+    {
+      label: "Nova Solicitação",
+      icon: "pi pi-send",
+      command: () => navigate("/solicitacoes/nova"),
+    },
+  ];
+
+
+  let roleItems: MenuItem[] = [];
+
+  switch (role) {
+    case "ROLE_ADMINISTRADOR":
+      roleItems = adminItems;
+      break;
+    case "ROLE_RESPONSAVEL_LABORATORIO":
+      roleItems = responsavelLabItems;
+      break;
+    case "ROLE_RESPONSAVEL_DEPARTAMENTO":
+      roleItems = responsavelDepItems;
+      break;
+    default:
+      roleItems = [];
+  }
+
+  const items: MenuItem[] = [...commonItems, ...roleItems];
 
   return (
     <div className="d-flex flex-column h-100">

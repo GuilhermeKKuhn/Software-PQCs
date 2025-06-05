@@ -1,23 +1,21 @@
 INSERT INTO tb_user (username, name, password, email, ativo, tipo_perfil, siape) VALUES ('admin@teste.com', 'Administrador', '$2a$12$Pw0RrSNoRtZ/somMyoQEYeZqVu27jNoKzseHU0zLllOQTJ2WBTKvC', 'admin@teste.com', true, 'ADMINISTRADOR', '0000001');
+INSERT INTO tb_user (username, name, password, email, ativo, tipo_perfil, siape) VALUES ('chefe@quimica.com', 'Chefe Química', '$2a$12$Pw0RrSNoRtZ/somMyoQEYeZqVu27jNoKzseHU0zLllOQTJ2WBTKvC', 'chefe@quimica.com', true, 'RESPONSAVEL_DEPARTAMENTO', '0000002');
+INSERT INTO tb_user (username, name, password, email, ativo, tipo_perfil, siape) VALUES ('resp.lab1@teste.com', 'Responsável Lab Química', '$2a$12$Pw0RrSNoRtZ/somMyoQEYeZqVu27jNoKzseHU0zLllOQTJ2WBTKvC', 'resp.lab1@teste.com', true, 'RESPONSAVEL_LABORATORIO', '0000003');
+INSERT INTO tb_user (username, name, password, email, ativo, tipo_perfil, siape) VALUES ('resp.lab2@teste.com', 'Responsável Lab Física', '$2a$12$Pw0RrSNoRtZ/somMyoQEYeZqVu27jNoKzseHU0zLllOQTJ2WBTKvC', 'resp.lab2@teste.com', true, 'RESPONSAVEL_LABORATORIO', '0000004');
 
--- Unidade de Medida
 INSERT INTO tb_unidade_medida (nome, sigla) VALUES ('Litro', 'L');
 INSERT INTO tb_unidade_medida (nome, sigla) VALUES ('Mililitro', 'ml');
 INSERT INTO tb_unidade_medida (nome, sigla) VALUES ('Grama', 'g');
 
--- Departamento
-INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Química', 'DQ', 1);
-INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Física', 'DF',1);
+INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Química', 'DQ', 2);
+INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('Departamento de Física', 'DF', 1);
 
--- Laboratório
-INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Química', 'A1', 1, 1);
-INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Física', 'B1', 2, 1);
+INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Química', 'A1', 1, 3);
+INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Física', 'B1', 2, 4);
 
--- Fornecedor
 INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Gás', '12345678901234', 'Rua do Gás', '100', 'Pato Branco', 'PR', '(43) 98888-7777', 'gas@fornecedor.com');
 INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com');
 INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
 
--- Produto Químico
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'POLICIA_FEDERAL' , 'Líquido', 1);
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', 12, 'Corrosivo', 'EXERCITO','Líquido', 2);
+INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'POLICIA_FEDERAL', 'Líquido', 1);
+INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', 12, 'Corrosivo', 'EXERCITO', 'Líquido', 2);

@@ -27,10 +27,11 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
     private final ModelMapper modelMapper;
     private final FornecedorRepository fornecedorRepository;
     private final ItensNotaFiscalRepository itensNotaFiscalRepository;
+    private final DepartamentoRepository departamentoRepository;
 
     public MovimentacaoServiceImpl(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository, ProdutoQuimicoRepository produtoRepository,
                                    LaboratorioRepository laboratorioRepository, NotaFiscalRepository notaFiscalRepository, AuthService authService, ModelMapper modelMapper,
-                                   FornecedorRepository fornecedorRepository,ItensNotaFiscalRepository itensNotaFiscalRepository) {
+                                   FornecedorRepository fornecedorRepository,ItensNotaFiscalRepository itensNotaFiscalRepository, DepartamentoRepository departamentoRepository) {
         this.movimentacaoRepository = movimentacaoRepository;
         this.estoqueRepository = estoqueRepository;
         this.produtoRepository = produtoRepository;
@@ -40,13 +41,41 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         this.modelMapper = modelMapper;
         this.fornecedorRepository = fornecedorRepository;
         this.itensNotaFiscalRepository = itensNotaFiscalRepository;
+        this.departamentoRepository = departamentoRepository;
     }
 
 
     public List<MovimentacaoDTO> realizarMovimentacoes(MovimentacaoDTO dto) {
-        if (dto.getTipo() == null) throw new RuntimeException("Tipo da movimentação deve ser informado.");
-
+        if (dto.getTipo() == null) {
+            throw new RuntimeException("Tipo da movimentação deve ser informado.");
+        }
         TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
+        User user = authService.getUsuarioLogado();
+        if (!user.getTipoPerfil().equals(TipoPerfil.ADMINISTRADOR) && tipo != TipoMovimentacao.SAIDA) {
+            throw new RuntimeException("Você só pode realizar movimentações do tipo SAÍDA.");
+        }
+        if (!user.getTipoPerfil().equals(TipoPerfil.ADMINISTRADOR)) {
+            Long labOrigemId = dto.getLaboratorioOrigem() != null ? dto.getLaboratorioOrigem().getId() : null;
+            if (labOrigemId == null) {
+                throw new RuntimeException("Laboratório de origem é obrigatório para movimentação do tipo SAÍDA.");
+            }
+            boolean autorizado = false;
+            if (user.getTipoPerfil().equals(TipoPerfil.RESPONSAVEL_LABORATORIO)) {
+                autorizado = laboratorioRepository.findAllByResponsavelId(user.getId())
+                        .stream()
+                        .anyMatch(lab -> lab.getId().equals(labOrigemId));
+            } else if (user.getTipoPerfil().equals(TipoPerfil.RESPONSAVEL_DEPARTAMENTO)) {
+                autorizado = departamentoRepository.findAllByResponsavelId(user.getId())
+                        .stream()
+                        .flatMap(dep -> laboratorioRepository.findAllByResponsavelId(dep.getId()).stream())
+                        .anyMatch(lab -> lab.getId().equals(labOrigemId));
+            }
+
+            if (!autorizado) {
+                throw new RuntimeException("Você não tem permissão para movimentar produtos deste laboratório.");
+            }
+        }
+
         validarLaboratorios(dto, tipo);
 
         NotaFiscal notaFiscal = tipo == TipoMovimentacao.ENTRADA ? criarNotaFiscalSeNecessario(dto) : null;
@@ -55,6 +84,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
         return criarMovimentacoes(dto.getItens(), tipo, origem, destino, notaFiscal);
     }
+
 
     private void validarLaboratorios(MovimentacaoDTO dto, TipoMovimentacao tipo) {
         if ((tipo == TipoMovimentacao.ENTRADA || tipo == TipoMovimentacao.TRANSFERENCIA) && (dto.getLaboratorioDestino() == null || dto.getLaboratorioDestino().getId() == null)) {

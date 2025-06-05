@@ -10,6 +10,9 @@ interface Props {
   watch: UseFormWatch<IMovimentacaoForm>;
   fornecedores: { id: number; razaoSocial: string }[];
   laboratorios: { id: number; nomeLaboratorio: string }[];
+  disableTipo?: boolean;
+  hideNotaFiscal?: boolean;
+  hideDestino?: boolean;
 }
 
 export function CabecalhoMovimentacaoForm({
@@ -17,6 +20,9 @@ export function CabecalhoMovimentacaoForm({
   watch,
   fornecedores,
   laboratorios,
+  disableTipo = false,
+  hideNotaFiscal = false,
+  hideDestino = false,
 }: Props) {
   const tipo = watch("tipo");
 
@@ -32,16 +38,22 @@ export function CabecalhoMovimentacaoForm({
             control={control}
             rules={{ required: "Selecione um tipo" }}
             render={({ field }) => (
-              <Dropdown {...field} options={[
-                { label: "Entrada", value: "ENTRADA" },
-                { label: "Saída", value: "SAIDA" },
-                { label: "Transferência", value: "TRANSFERENCIA" },
-              ]} placeholder="Selecione" className="w-100" />
+              <Dropdown
+                {...field}
+                disabled={disableTipo}
+                options={[
+                  { label: "Entrada", value: "ENTRADA" },
+                  { label: "Saída", value: "SAIDA" },
+                  { label: "Transferência", value: "TRANSFERENCIA" },
+                ]}
+                placeholder="Selecione"
+                className="w-100"
+              />
             )}
           />
         </div>
 
-        {tipo === "ENTRADA" && (
+        {tipo === "ENTRADA" && !hideNotaFiscal && (
           <>
             <div className="col-md-4">
               <label className="form-label">Número da Nota Fiscal</label>
@@ -49,7 +61,11 @@ export function CabecalhoMovimentacaoForm({
                 name="notaFiscal.numeroNotaFiscal"
                 control={control}
                 render={({ field }) => (
-                  <InputText {...field} value={field.value?.toString() || ""} className="form-control" />
+                  <InputText
+                    {...field}
+                    value={field.value?.toString() || ""}
+                    className="form-control"
+                  />
                 )}
               />
             </div>
@@ -80,7 +96,10 @@ export function CabecalhoMovimentacaoForm({
                 render={({ field }) => (
                   <Dropdown
                     {...field}
-                    options={fornecedores.map(f => ({ label: f.razaoSocial, value: f.id }))}
+                    options={fornecedores.map((f) => ({
+                      label: f.razaoSocial,
+                      value: f.id,
+                    }))}
                     placeholder="Selecione o fornecedor"
                     className="w-100"
                   />
@@ -90,7 +109,7 @@ export function CabecalhoMovimentacaoForm({
           </>
         )}
 
-        {(tipo === "ENTRADA" || tipo === "TRANSFERENCIA") && (
+        {((tipo === "ENTRADA" || tipo === "TRANSFERENCIA") && !hideDestino) && (
           <div className="col-md-6">
             <label className="form-label">Laboratório de Destino</label>
             <Controller
@@ -99,7 +118,10 @@ export function CabecalhoMovimentacaoForm({
               render={({ field }) => (
                 <Dropdown
                   {...field}
-                  options={laboratorios.map(lab => ({ label: lab.nomeLaboratorio, value: lab.id }))}
+                  options={laboratorios.map((lab) => ({
+                    label: lab.nomeLaboratorio,
+                    value: lab.id,
+                  }))}
                   placeholder="Selecione"
                   className="w-100"
                 />
@@ -117,7 +139,10 @@ export function CabecalhoMovimentacaoForm({
               render={({ field }) => (
                 <Dropdown
                   {...field}
-                  options={laboratorios.map(lab => ({ label: lab.nomeLaboratorio, value: lab.id }))}
+                  options={laboratorios.map((lab) => ({
+                    label: lab.nomeLaboratorio,
+                    value: lab.id,
+                  }))}
                   placeholder="Selecione"
                   className="w-100"
                 />

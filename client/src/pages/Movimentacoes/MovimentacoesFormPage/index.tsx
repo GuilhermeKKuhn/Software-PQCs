@@ -10,11 +10,18 @@ import LaboratorioService from "@/service/LaboratorioService";
 import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
 import { ConfirmarMovimentacao } from "@/components/Common/ConfirmaMovimentacao/ConfirmaMovimentacao";
 import { ItensMovimentacaoForm } from "@/components/Common/ItensMovimentacaoForm/ItensMovimentacaoForm";
+import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
+import { IFornecedor } from "@/commons/FornecedorInterface";
+import { ILaboratorio } from "@/commons/LaboratorioInterface";
+
 
 export default function MovimentacaoFormPage() {
+  const user = useAuthUser();
+  const isPerfilRestrito = user?.tipoPerfil !== "ADMINISTRADOR";
+
   const { control, watch } = useForm<IMovimentacaoForm>({
     defaultValues: {
-      tipo: undefined,
+      tipo: isPerfilRestrito ? "SAIDA" : undefined,
       notaFiscal: {
         numeroNotaFiscal: undefined,
         dataRecebimento: "",
@@ -28,16 +35,28 @@ export default function MovimentacaoFormPage() {
 
   const tipoMovimentacao = watch("tipo");
   const toast = useRef<Toast>(null);
-  const [fornecedores, setFornecedores] = useState([]);
-  const [laboratorios, setLaboratorios] = useState([]);
-  const [produtos, setProdutos] = useState([]);
+
+  const [fornecedores, setFornecedores] = useState<IFornecedor[]>([]);
+  const [laboratorios, setLaboratorios] = useState<ILaboratorio[]>([]);
+  const [produtos, setProdutos] = useState<any[]>([]);
   const [itens, setItens] = useState<IItemMovimentacao[]>([]);
 
   useEffect(() => {
-    FornecedorService.listarFornecedores().then((res) => setFornecedores(res.data as any));
-    LaboratorioService.listarLaboratorios().then((res) => setLaboratorios(res.data as any));
-    ProdutoQuimicoService.listarProdutosQuimicos().then((res) => setProdutos(res.data as any));
-  }, []);
+    FornecedorService.listarFornecedores().then((res) => setFornecedores(res.data));
+    ProdutoQuimicoService.listarProdutosQuimicos().then((res) => setProdutos(res.data));
+
+    LaboratorioService.listarLaboratorios().then((res) => {
+      let labs: ILaboratorio[] = res.data;
+
+      if (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
+        labs = labs.filter((lab) => user.laboratoriosId.includes(lab.id));
+      } else if (user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
+        labs = labs.filter((lab) => user.departamentosId.includes(lab.departamento.id));
+      }
+
+      setLaboratorios(labs);
+    });
+  }, [user]);
 
   const adicionarItem = (item: IItemMovimentacao) => {
     setItens([...itens, item]);
@@ -48,36 +67,48 @@ export default function MovimentacaoFormPage() {
   };
 
   const validarCabecalho = (): boolean => {
-  if (!tipoMovimentacao) return false;
+    if (!tipoMovimentacao) return false;
 
-  if (tipoMovimentacao === "TRANSFERENCIA") {
-    const origem = watch("laboratorioOrigem.id");
-    const destino = watch("laboratorioDestino.id");
-    if (!origem || !destino || origem === destino) {
-      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Laboratórios de origem e destino devem ser diferentes." });
-      return false;
+    if (tipoMovimentacao === "TRANSFERENCIA") {
+      const origem = watch("laboratorioOrigem.id");
+      const destino = watch("laboratorioDestino.id");
+      if (!origem || !destino || origem === destino) {
+        toast.current?.show({
+          severity: "warn",
+          summary: "Erro",
+          detail: "Laboratórios de origem e destino devem ser diferentes.",
+        });
+        return false;
+      }
     }
-  }
 
-  if (tipoMovimentacao === "ENTRADA") {
-    const fornecedor = watch("notaFiscal.fornecedor.id");
-    if (!fornecedor) {
-      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Fornecedor é obrigatório." });
-      return false;
+    if (tipoMovimentacao === "ENTRADA") {
+      const fornecedor = watch("notaFiscal.fornecedor.id");
+      if (!fornecedor) {
+        toast.current?.show({
+          severity: "warn",
+          summary: "Erro",
+          detail: "Fornecedor é obrigatório.",
+        });
+        return false;
+      }
     }
-  }
 
-  return true;
-};
+    return true;
+  };
 
   return (
     <div className="p-4 space-y-6">
       <Toast ref={toast} />
+
       <CabecalhoMovimentacaoForm
         control={control}
         watch={watch}
         fornecedores={fornecedores}
         laboratorios={laboratorios}
+        disableTipo={isPerfilRestrito}
+        hideNotaFiscal={isPerfilRestrito}
+        hideDestino={isPerfilRestrito}
       />
 
       <ItensMovimentacaoForm
@@ -88,17 +119,13 @@ export default function MovimentacaoFormPage() {
         laboratorioOrigemId={watch("laboratorioOrigem.id")}
       />
 
-      <ListaItensMovimentacao
-        itens={itens}
-        onRemove={removerItem}
-      />
+      <ListaItensMovimentacao itens={itens} onRemove={removerItem} />
 
       <ConfirmarMovimentacao
         dadosCabecalho={{ ...watch(), itens }}
         itens={itens}
         validarCabecalho={validarCabecalho}
       />
-
     </div>
   );
 }

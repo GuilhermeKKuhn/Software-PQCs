@@ -1,5 +1,5 @@
 export interface ILaboratorio {
-  id?: number; //ver
+  id: number; //ver
   nomeLaboratorio: string;
   sala: string;
   departamento: {

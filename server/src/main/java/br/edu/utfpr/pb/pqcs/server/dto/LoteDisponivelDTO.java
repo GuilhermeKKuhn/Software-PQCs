@@ -13,6 +13,15 @@ public class LoteDisponivelDTO {
     private Double quantidade;
     private LocalDateTime validade;
     private Long laboratorioId;
+    private String nomeLaboratorio;
+
+    public LoteDisponivelDTO(String lote, Double quantidade, LocalDateTime validade, Long laboratorioId, String nomeLaboratorio) {
+        this.lote = lote;
+        this.quantidade = quantidade;
+        this.validade = validade;
+        this.laboratorioId = laboratorioId;
+        this.nomeLaboratorio = nomeLaboratorio;
+    }
 
     public LoteDisponivelDTO(String lote, Double quantidade, LocalDateTime validade, Long laboratorioId) {
         this.lote = lote;

@@ -6,9 +6,11 @@ import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import EstoqueService from "@/service/EstoqueService";
 import { Dialog } from "primereact/dialog";
 import { IEstoqueLote, IEstoqueProduto } from "@/commons/EstoqueInterface";
+import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
 
 
 export function EstoquePage() {
+  const user = useAuthUser();
   const [search, setSearch] = useState("");
   const [produtos, setProdutos] = useState<IEstoqueProduto[]>([]);
   const [produtoSelecionado, setProdutoSelecionado] = useState<IEstoqueProduto | null>(null);
@@ -16,10 +18,22 @@ export function EstoquePage() {
   const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
-    EstoqueService.buscarEstoquePorProduto().then((res) => {
-      setProdutos(res.data);
-    });
-  }, []);
+    if (!user) return;
+
+    if (user.tipoPerfil === "ADMINISTRADOR") {
+      EstoqueService.buscarEstoquePorProduto().then((res) => {
+        setProdutos(res.data);
+      });
+    } else if (user.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
+      EstoqueService.buscarEstoquePorLaboratorios(user.laboratoriosId).then((res) => {
+        setProdutos(res.data);
+      });
+    } else if (user.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
+      EstoqueService.buscarEstoquePorDepartamentos(user.departamentosId).then((res) => {
+        setProdutos(res.data);
+      });
+    }
+  }, [user]);
 
   const filteredProdutos = produtos.filter((produto) =>
     produto.nome.toLowerCase().includes(search.toLowerCase())
@@ -27,10 +41,23 @@ export function EstoquePage() {
 
   const handleRowClick = (produto: IEstoqueProduto) => {
     setProdutoSelecionado(produto);
-    EstoqueService.buscarLotesDoProduto(produto.id).then((res) => {
-      setLotes(res.data);
-      setShowDialog(true);
-    });
+
+    if (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
+      EstoqueService.buscarLotesDoProdutoDosLaboratorios(produto.id, user.laboratoriosId).then((res) => {
+        setLotes(res.data);
+        setShowDialog(true);
+      });
+    } else if (user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
+      EstoqueService.buscarLotesPorProdutoEDepartamentos(produto.id, user.departamentosId).then((res) => {
+        setLotes(res.data);
+        setShowDialog(true);
+      });
+    } else {
+      EstoqueService.buscarLotesDoProduto(produto.id).then((res) => {
+        setLotes(res.data);
+        setShowDialog(true);
+      });
+    }
   };
 
   const columns = [
@@ -110,7 +137,7 @@ export function EstoquePage() {
                         </td>
                         <td>
                           <i className="pi pi-building text-secondary me-2" />
-                          {lote.laboratorio}
+                          {lote.laboratorio || lote.nomeLaboratorio}
                         </td>
                       </tr>
                     );
