@@ -21,12 +21,17 @@ const deletarLaboratorio = (id: number) => {
   return api.delete(`/laboratorio/${id}`);
 };
 
+const listarLaboratoriosPermitidos = () => {
+  return api.get<ILaboratorio[]>("/laboratorio/permitidos");
+};
+
 const LaboratorioService = {
   cadastrarLaboratorio,
   listarLaboratorios,
   buscarLaboratorioPorId,
   editarLaboratorio,
-  deletarLaboratorio
+  deletarLaboratorio,
+  listarLaboratoriosPermitidos
 };
 
 export default LaboratorioService;

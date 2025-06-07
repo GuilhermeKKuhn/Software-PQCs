@@ -161,6 +161,34 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         return result;
     }
 
+    public void realizarMovimentacoesPorSolicitacao(Long laboratorioOrigemId, Laboratorio destino, ItemSolicitacao item) {
+        if (item.getLoteSelecionado() == null || item.getQuantidadeAprovada() == null || item.getQuantidadeAprovada() <= 0) {
+            throw new RuntimeException("Lote e quantidade válida devem estar definidos para aprovar item.");
+        }
+
+        Laboratorio origem = laboratorioRepository.findById(laboratorioOrigemId)
+                .orElseThrow(() -> new RuntimeException("Laboratório de origem não encontrado."));
+
+        MovimentacaoDTO dto = new MovimentacaoDTO();
+        dto.setTipo(TipoMovimentacao.TRANSFERENCIA.name());
+
+        dto.setLaboratorioOrigem(new LaboratorioDTO());
+        dto.getLaboratorioOrigem().setId(origem.getId());
+
+        dto.setLaboratorioDestino(new LaboratorioDTO());
+        dto.getLaboratorioDestino().setId(destino.getId());
+
+        ItemMovimentacaoDTO itemMov = new ItemMovimentacaoDTO();
+        itemMov.setProdutoId(item.getProduto().getId());
+        itemMov.setLote(item.getLoteSelecionado());
+        itemMov.setQuantidade(item.getQuantidadeAprovada().doubleValue());
+
+        dto.setItens(List.of(itemMov));
+
+        realizarMovimentacoes(dto);
+    }
+
+
 
     private void criarItemNotaFiscal(NotaFiscal nf, ProdutoQuimico produto, ItemMovimentacaoDTO item) {
         ItensNotaFiscal inf = new ItensNotaFiscal();
@@ -325,8 +353,6 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
 
             dto.setLaboratorioDestino(labDTO);
         }
-
-        // Usuário
         if (m.getUsuario() != null) {
             UserDTO uDTO = new UserDTO();
             uDTO.setId(m.getUsuario().getId());
@@ -334,7 +360,6 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             dto.setUsuario(uDTO);
         }
 
-        // Item único (como você tá salvando um por vez)
         ItemMovimentacaoDTO itemDTO = new ItemMovimentacaoDTO();
         itemDTO.setProdutoId(m.getProduto().getId());
         itemDTO.setNomeProduto(m.getProduto().getNome());

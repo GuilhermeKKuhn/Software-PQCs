@@ -23,6 +23,8 @@ import { UnidadeMedidaFormPage } from "@/pages/UnidadeMedida/UnidadeMedidaFormPa
 import { FornecedorPage } from "@/pages/Fornecedor/FornecedorPage";
 import { FornecedorFormPage } from "@/pages/Fornecedor/FornecedorFormPage";
 import MovimentacaoFormPage from "@/pages/Movimentacoes/MovimentacoesFormPage";
+import { SolicitacaoPage } from "@/pages/Solicitacao/SolicitacaoPage/Index";
+import { SolicitacaoFormPage } from "@/pages/Solicitacao/SolicitacaoFormPage";
 
 export function BaseRoutes() {
   return (
@@ -70,6 +72,13 @@ export function BaseRoutes() {
           <Route path="movimentacoes" element={<MovimentacaoPage />} />
           <Route path="movimentacoes/nova" element={<MovimentacaoFormPage />} />
           <Route path="movimentacoes/:id" element={<MovimentacaoFormPage />} />
+
+          {/* Solicitações */}
+          <Route path="solicitacoes" element={<SolicitacaoPage />} />
+          <Route path="solicitacoes/nova" element={<SolicitacaoFormPage />} />
+          <Route path="solicitacoes/:id" element={<SolicitacaoFormPage />} />
+        
+
 
           {/* Usuários */}
           <Route path="usuarios" element={<UsuarioPage />} />

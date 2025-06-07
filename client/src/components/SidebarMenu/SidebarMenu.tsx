@@ -82,9 +82,9 @@ export const SidebarMenu = () => {
       command: () => navigate("/movimentacoes/saida"),
     },
     {
-      label: "Nova Solicitação",
+      label: "Solicitação",
       icon: "pi pi-send",
-      command: () => navigate("/solicitacoes/nova"),
+      command: () => navigate("/solicitacoes"),
     },
   ];
 
@@ -100,9 +100,9 @@ export const SidebarMenu = () => {
       command: () => navigate("/movimentacoes/saida"),
     },
     {
-      label: "Nova Solicitação",
+      label: "Solicitação",
       icon: "pi pi-send",
-      command: () => navigate("/solicitacoes/nova"),
+      command: () => navigate("/solicitacoes"),
     },
   ];
 
