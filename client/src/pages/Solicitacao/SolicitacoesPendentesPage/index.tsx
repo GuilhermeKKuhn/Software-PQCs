@@ -1,43 +1,49 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
-import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
-import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
-import { ActionButtonCreate } from "@/components/Common/ActionButtonCreate/ActionButtonCreate";
 import SolicitacaoService from "@/service/SolicitacaoService";
 import { ISolicitacao } from "@/commons/Solicitacaointerface";
+import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
-import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
 import { format } from "date-fns";
+import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
+import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
+import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
 
-export function SolicitacaoPage() {
-  const navigate = useNavigate();
+export function SolicitacoesPendentesPage() {
   const [solicitacoes, setSolicitacoes] = useState<ISolicitacao[]>([]);
   const [search, setSearch] = useState("");
-  const [detalhesVisivel, setDetalhesVisivel] = useState(false);
   const [selecionada, setSelecionada] = useState<ISolicitacao | null>(null);
+  const [detalhesVisivel, setDetalhesVisivel] = useState(false);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-      SolicitacaoService.listar().then((res) => {
-        setSolicitacoes(res.data);
-      });
-    }, []);
+  useEffect(() => {
+    SolicitacaoService.listar().then((res) => {
+      const ordenadas = [...res.data].sort(
+        (a, b) =>
+          new Date(b.dataSolicitacao).getTime() -
+          new Date(a.dataSolicitacao).getTime()
+      );
+      setSolicitacoes(ordenadas);
+    });
+  }, []);
 
-  const filtered = solicitacoes.filter((s) =>
-    s.itens.some((item) =>
-      item.nomeProduto?.toString().includes(search.toLowerCase()) ||
-      item.laboratorioOrigemId?.toString().includes(search.toLowerCase())
-    )
-  );
+  const filtered = solicitacoes.filter((s) => {
+    const termo = search.toLowerCase();
+    return (
+      s.solicitante.toLowerCase().includes(termo) ||
+      s.status.toLowerCase().includes(termo) ||
+      s.dataSolicitacao.toLowerCase().includes(termo) ||
+      s.laboratorio?.nomeLaboratorio.toLowerCase().includes(termo) ||
+      s.laboratorio?.sala.toLowerCase().includes(termo)
+    );
+  });
 
   const columns = [
     {
       field: "dataSolicitacao",
       header: "Data",
       body: (rowData: ISolicitacao) =>
-        rowData.dataSolicitacao
-          ? format(new Date(rowData.dataSolicitacao), "dd/MM/yyyy")
-          : "-",
+        format(new Date(rowData.dataSolicitacao), "dd/MM/yyyy"),
       headerStyle: { textAlign: "center" as const },
       bodyStyle: { textAlign: "left" as const },
     },
@@ -63,42 +69,44 @@ export function SolicitacaoPage() {
     },
   ];
 
+  const handleRowClick = (e: any) => {
+    const solicitacao = e.data as ISolicitacao;
+    const status = solicitacao.status.toUpperCase();
+
+    if (status === "APROVADA" || status === "RECUSADA") {
+      setSelecionada(solicitacao);
+      setDetalhesVisivel(true);
+    } else {
+      navigate(`/movimentacoes/nova/${solicitacao.id}`);
+    }
+  };
+
   return (
     <div className="container">
-      <PageHeader title="Solicitações de Materiais" />
+      <PageHeader title="Solicitações" />
 
       <TableHeader
         left={
           <SearchBar
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por produto ou ID"
-          />
-        }
-        right={
-          <ActionButtonCreate
-            label="Nova Solicitação"
-            onClick={() => navigate("/solicitacoes/novo")}
+            placeholder="Buscar Solicitação"
           />
         }
       />
 
-      <div className="p-card">
-        <DataTableComp
-          columns={columns}
-          data={filtered}
-          onRowClick={(e) => {
-            setSelecionada(e.data as ISolicitacao);
-            setDetalhesVisivel(true);
-          }}
-        />
-      </div>
+      <DataTableComp
+        columns={columns}
+        data={filtered}
+        onRowClick={handleRowClick}
+      />
 
       {selecionada && (
         <DetalhesDialog
           data={selecionada}
           visible={detalhesVisivel}
           onHide={() => setDetalhesVisivel(false)}
+          titulo="Detalhes da Solicitação"
           campos={[
             {
               label: "Data",
@@ -112,8 +120,7 @@ export function SolicitacaoPage() {
             {
               label: "Laboratório",
               field: "laboratorio.nomeLaboratorio",
-              body: (data) =>
-                `${data.laboratorio?.nomeLaboratorio ?? ""}`,
+              body: (data) => `${data.laboratorio?.nomeLaboratorio ?? "-"}`,
             },
             { label: "Status", field: "status" },
             {
@@ -150,7 +157,6 @@ export function SolicitacaoPage() {
               ),
             },
           ]}
-          titulo="Detalhes da Solicitação"
         />
       )}
     </div>

@@ -11,6 +11,7 @@ import { ActionButtonCreate } from "@/components/Common/ActionButtonCreate/Actio
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
 import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
+import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
 
 
@@ -107,10 +108,18 @@ export function FornecedorPage() {
           />
         }
         right={
-          <ActionButtonCreate
-            label="Novo Fornecedor"
-            onClick={() => navigate("/fornecedor/novo")}
-          />
+          <div className="d-flex gap-2">
+              <ExportarXlsx
+              titulo="Exportar Fornecedores"
+              endpoint="/relatorios/fornecedores"
+              nomeArquivo="fornecedores"
+              semData
+            />
+            <ActionButtonCreate
+              label="Novo Fornecedor"
+              onClick={() => navigate("/fornecedor/novo")}
+            />
+          </div>
         }
       />
 

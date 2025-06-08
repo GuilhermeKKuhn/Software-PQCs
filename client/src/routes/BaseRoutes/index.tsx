@@ -25,6 +25,9 @@ import { FornecedorFormPage } from "@/pages/Fornecedor/FornecedorFormPage";
 import MovimentacaoFormPage from "@/pages/Movimentacoes/MovimentacoesFormPage";
 import { SolicitacaoPage } from "@/pages/Solicitacao/SolicitacaoPage/Index";
 import { SolicitacaoFormPage } from "@/pages/Solicitacao/SolicitacaoFormPage";
+import { SolicitacoesPendentesPage } from "@/pages/Solicitacao/SolicitacoesPendentesPage";
+import { MovimentacaoPreenchidaPage } from "@/pages/Movimentacoes/MovimentacaoPreenchidaPage";
+import MovimentacoesFormPage from "@/pages/Movimentacoes/MovimentacoesFormPage";
 
 export function BaseRoutes() {
   return (
@@ -71,13 +74,15 @@ export function BaseRoutes() {
           {/* Movimentações */}
           <Route path="movimentacoes" element={<MovimentacaoPage />} />
           <Route path="movimentacoes/nova" element={<MovimentacaoFormPage />} />
-          <Route path="movimentacoes/:id" element={<MovimentacaoFormPage />} />
+          <Route path="/movimentacoes/nova" element={<MovimentacoesFormPage />} />
+          <Route path="/movimentacoes/nova/:id" element={<MovimentacoesFormPage />} />
+
 
           {/* Solicitações */}
           <Route path="solicitacoes" element={<SolicitacaoPage />} />
           <Route path="solicitacoes/nova" element={<SolicitacaoFormPage />} />
           <Route path="solicitacoes/:id" element={<SolicitacaoFormPage />} />
-        
+          <Route path="solicitacoes-pendentes" element={<SolicitacoesPendentesPage />} />
 
 
           {/* Usuários */}

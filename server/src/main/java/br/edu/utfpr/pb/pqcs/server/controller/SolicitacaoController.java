@@ -38,4 +38,10 @@ public class SolicitacaoController {
     public ResponseEntity<MovimentacaoDTO> gerarMovimentacaoDaSolicitacao(@PathVariable Long id) {
         return ResponseEntity.ok(solicitacaoService.gerarMovimentacaoPreenchida(id));
     }
+
+    @GetMapping("/listartodas")
+    public List<SolicitacaoDTO> listarTodasVisiveis() {
+        return solicitacaoService.listarTodasVisiveis();
+    }
+
 }

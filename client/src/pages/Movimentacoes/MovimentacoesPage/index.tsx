@@ -12,6 +12,7 @@ import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialo
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 import { IMovimentacaoAgrupada } from "@/commons/MovimentacaoAgrupadaInterface";
 import { IUser } from "@/commons/UserInterfaces";
+import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
 export function MovimentacaoPage() {
   const navigate = useNavigate();
@@ -104,10 +105,17 @@ export function MovimentacaoPage() {
           />
         }
         right={
-          <ActionButtonCreate
-            label="Nova Movimentação"
-            onClick={() => navigate("/movimentacoes/nova")}
-          />
+          <div className="d-flex gap-2">
+            <ExportarXlsx
+              titulo="Exportar Relatório"
+              endpoint="/relatorios/movimentacoes"
+              nomeArquivo="relatorio-movimentacoes"
+            />
+            <ActionButtonCreate
+              label="Nova Movimentação"
+              onClick={() => navigate("/movimentacoes/nova")}
+            />
+          </div>
         }
       />
 

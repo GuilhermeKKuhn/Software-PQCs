@@ -14,10 +14,15 @@ const buscarMovimentacao = (id: number) => {
   return api.get(`/api/movimentacoes/${id}`);
 };
 
+const gerarMovimentacaoPreenchida = (id: number) => {
+  return api.get(`/solicitacoes/${id}/movimentacao-preenchida`)
+}
+
 const MovimentacaoService = {
     novaMovimentacao,
     listarMovimentacoes,
-    buscarMovimentacao
+    buscarMovimentacao,
+    gerarMovimentacaoPreenchida
 };
 
 export default MovimentacaoService;

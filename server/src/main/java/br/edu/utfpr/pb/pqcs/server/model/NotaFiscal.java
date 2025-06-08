@@ -25,7 +25,6 @@ public class NotaFiscal {
     private Long numeroNotaFiscal;
 
     @NotNull
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataRecebimento;
 
     @ManyToOne

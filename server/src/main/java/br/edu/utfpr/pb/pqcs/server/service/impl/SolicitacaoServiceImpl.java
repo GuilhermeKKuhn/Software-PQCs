@@ -41,6 +41,33 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
         this.departamentoRepo = departamentoRepo;
     }
 
+    public List<SolicitacaoDTO> listarTodasVisiveis() {
+        User user = authService.getUsuarioLogado();
+
+        List<Solicitacao> solicitacoes;
+
+        if (user.getTipoPerfil().equals(TipoPerfil.ADMINISTRADOR)) {
+            solicitacoes = solicitacaoRepo.findAll();
+        } else if (user.getTipoPerfil().equals(TipoPerfil.RESPONSAVEL_LABORATORIO)) {
+            List<Long> labs = labRepo.findAllByResponsavelId(user.getId()).stream()
+                    .map(Laboratorio::getId).toList();
+            solicitacoes = solicitacaoRepo.findAllByLaboratorioIdIn(labs);
+        } else if (user.getTipoPerfil().equals(TipoPerfil.RESPONSAVEL_DEPARTAMENTO)) {
+            List<Long> depIds = departamentoRepo.findAllByResponsavelId(user.getId()).stream()
+                    .map(Departamento::getId).toList();
+
+            List<Long> labs = labRepo.findAll().stream()
+                    .filter(lab -> lab.getDepartamento() != null && depIds.contains(lab.getDepartamento().getId()))
+                    .map(Laboratorio::getId).toList();
+
+            solicitacoes = solicitacaoRepo.findAllByLaboratorioIdIn(labs);
+        } else {
+            solicitacoes = solicitacaoRepo.findAllBySolicitanteId(user.getId());
+        }
+
+        return solicitacoes.stream().map(this::toDTO).toList();
+    }
+
     public SolicitacaoDTO criar(SolicitacaoDTO dto) {
         User solicitante = authService.getUsuarioLogado();
         Laboratorio lab = labRepo.findById(dto.getLaboratorioId())
@@ -126,16 +153,21 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
 
         for (ItemSolicitacaoDTO itemDTO : itensDTO) {
             if (itemDTO.getQuantidadeAprovada() != null && itemDTO.getQuantidadeAprovada() > 0) {
+                ItemSolicitacao item = new ItemSolicitacao();
+                item.setId(itemDTO.getId());
+                item.setQuantidadeAprovada(itemDTO.getQuantidadeAprovada());
+                item.setLoteSelecionado(itemDTO.getLoteSelecionado());
+                item.setProduto(produtoRepo.findById(itemDTO.getProdutoId())
+                        .orElseThrow(() -> new RuntimeException("Produto não encontrado")));
+
                 movimentacaoService.realizarMovimentacoesPorSolicitacao(
                         itemDTO.getLaboratorioOrigemId(),
                         solicitacao.getLaboratorio(),
-                        solicitacao.getItens().stream()
-                                .filter(i -> i.getId().equals(itemDTO.getId()))
-                                .findFirst()
-                                .orElseThrow(() -> new RuntimeException("Item não encontrado"))
+                        item
                 );
             }
         }
+
     }
 
     public MovimentacaoDTO gerarMovimentacaoPreenchida(Long solicitacaoId) {
@@ -152,6 +184,7 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
 
         List<ItemMovimentacaoDTO> itens = solicitacao.getItens().stream().map(item -> {
             ItemMovimentacaoDTO i = new ItemMovimentacaoDTO();
+            i.setIdSolicitacaoItem(item.getId());
             i.setProdutoId(item.getProduto().getId());
             i.setNomeProduto(item.getProduto().getNome());
             i.setQuantidade(item.getQuantidadeSolicitada().doubleValue());
@@ -163,11 +196,12 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
         return dto;
     }
 
+
     private SolicitacaoDTO toDTO(Solicitacao s) {
         return new SolicitacaoDTO(
                 s.getId(),
                 s.getLaboratorio().getId(),
-                s.getLaboratorio().getNomeLaboratorio(),
+                s.getLaboratorio(),
                 s.getSolicitante().getName(),
                 s.getStatus().name(),
                 s.getDataSolicitacao(),

@@ -68,6 +68,11 @@ export const SidebarMenu = () => {
       icon: "pi pi-truck",
       command: () => navigate("/fornecedor"),
     },
+    {
+      label: "Solicitação",
+      icon: "pi pi-send",
+      command: () => navigate("/solicitacoes-pendentes"),
+    },
   ];
 
     const responsavelLabItems: MenuItem[] = [
@@ -79,7 +84,7 @@ export const SidebarMenu = () => {
     {
       label: "Movimentações",
       icon: "pi pi-sync",
-      command: () => navigate("/movimentacoes/saida"),
+      command: () => navigate("/movimentacoes/nova"),
     },
     {
       label: "Solicitação",
@@ -97,7 +102,7 @@ export const SidebarMenu = () => {
     {
       label: "Movimentações",
       icon: "pi pi-sync",
-      command: () => navigate("/movimentacoes/saida"),
+      command: () => navigate("/movimentacoes/nova"),
     },
     {
       label: "Solicitação",

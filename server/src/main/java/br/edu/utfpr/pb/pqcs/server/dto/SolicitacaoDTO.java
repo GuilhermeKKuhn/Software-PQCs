@@ -1,5 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.dto;
 
+import br.edu.utfpr.pb.pqcs.server.model.Laboratorio;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ public class SolicitacaoDTO {
 
     private Long id;
     private Long laboratorioId;
-    private String laboratorio;
+    private Laboratorio laboratorio;
     private String solicitante;
     private String status;
     private LocalDate dataSolicitacao;

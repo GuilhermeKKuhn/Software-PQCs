@@ -10,4 +10,6 @@ public class ItemMovimentacaoDTO {
     private Double quantidade;
     private Double preco;
     private String lote;
+    private Long idSolicitacaoItem;
+
 }

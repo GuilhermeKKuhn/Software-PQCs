@@ -2,9 +2,6 @@ import { api } from "@/lib/axios";
 import { IItemSolicitacao, ISolicitacaoCreate } from "@/commons/ItemSolicitacaoInterface";
 import { ISolicitacao } from "@/commons/Solicitacaointerface";
 
-const listarSolicitacoesPendentes = () => {
-  return api.get<ISolicitacao[]>("/solicitacoes/pendentes");
-};
 
 const criarSolicitacao = (dto: ISolicitacaoCreate) => {
   return api.post("/solicitacoes", dto);
@@ -22,12 +19,16 @@ const gerarMovimentacaoPreenchida = (id: number) => {
   return api.get(`/solicitacoes/${id}/movimentacao-preenchida`);
 };
 
+const listar = () => {
+  return api.get<ISolicitacao[]>("/solicitacoes/listartodas");
+};
+
 const SolicitacaoService = {
-  listarSolicitacoesPendentes,
   criarSolicitacao,
   buscarSolicitacaoPorId,
   aprovarSolicitacao,
   gerarMovimentacaoPreenchida,
+  listar,
 };
 
 export default SolicitacaoService;

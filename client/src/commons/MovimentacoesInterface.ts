@@ -20,7 +20,7 @@ export interface IMovimentacao {
 }
 
 export interface IMovimentacaoForm {
-  tipo: "ENTRADA" | "TRANSFERENCIA" | "SAIDA";
+  tipo: "ENTRADA" | "TRANSFERENCIA" | "SAIDA" | "";
   notaFiscal?: INotaFiscal;
   laboratorioOrigem?: ILaboratorio;
   laboratorioDestino?: ILaboratorio;

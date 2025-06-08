@@ -7,6 +7,7 @@ import EstoqueService from "@/service/EstoqueService";
 import { Dialog } from "primereact/dialog";
 import { IEstoqueLote, IEstoqueProduto } from "@/commons/EstoqueInterface";
 import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
+import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
 
 export function EstoquePage() {
@@ -79,6 +80,14 @@ export function EstoquePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar produto"
+          />
+        }
+        right={
+          <ExportarXlsx
+            titulo="Exportar Estoque"
+            endpoint="/relatorios/estoque"
+            nomeArquivo="estoque"
+            semData
           />
         }
       />

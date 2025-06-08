@@ -10,6 +10,7 @@ import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
 import { IUser } from "@/commons/UserInterfaces";
 import UserService from "@/service/UserService";
 import AuthService from "@/service/AuthService";
+import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
 
 export function UsuarioPage() {
@@ -97,10 +98,18 @@ export function UsuarioPage() {
             />
           }
           right={
-            <ActionButtonCreate
-              label="Novo Usuario"
-              onClick={() => navigate("/usuarios/novo")}
-            />
+            <div className="d-flex gap-2">
+              <ExportarXlsx
+                titulo="Exportar Usuários"
+                endpoint="/relatorios/usuarios"
+                nomeArquivo="usuarios"
+                semData
+              />
+              <ActionButtonCreate
+                label="Novo Usuario"
+                onClick={() => navigate("/usuarios/novo")}
+              />
+            </div>
           }
         />
   

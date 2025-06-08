@@ -9,6 +9,7 @@ import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
 import { ActionButtonCreate } from "@/components/Common/ActionButtonCreate/ActionButtonCreate";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DeleteConfirm } from "@/components/Common/DeleteConfirm/DeleteConfirm";
+import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
 
 
@@ -115,10 +116,18 @@ export function ProdutoPage() {
             />
           }
           right={
-            <ActionButtonCreate
-              label="Novo Produto Químico"
-              onClick={() => navigate("/produtos/novo")}
-            />
+            <div className="d-flex gap-2">
+              <ExportarXlsx
+                titulo="Exportar Produtos Químicos"
+                endpoint="/relatorios/produtos"
+                nomeArquivo="produtos"
+                semData
+              />
+              <ActionButtonCreate
+                label="Novo Produto Químico"
+                onClick={() => navigate("/produtos/novo")}
+              />
+            </div>
           }
         />
   

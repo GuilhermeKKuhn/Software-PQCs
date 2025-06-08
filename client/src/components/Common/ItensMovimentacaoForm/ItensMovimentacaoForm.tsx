@@ -21,7 +21,7 @@ type LoteDisponivel = {
   quantidade: number;
   validade: string;
   laboratorioId?: number;
-  laboratorioNome?: string; // se quiser mostrar depois
+  laboratorioNome?: string; 
 };
 
 export function ItensMovimentacaoForm({
@@ -67,13 +67,13 @@ export function ItensMovimentacaoForm({
     const produto = produtos.find((p) => p.id === produtoId);
 
     onAdicionar({
-      produtoId,
-      nomeProduto: produto?.nome ?? "",
-      lote,
-      quantidade,
-      preco: tipoMovimentacao === "ENTRADA" ? preco : null,
-    });
-
+    produtoId,
+    nomeProduto: produto?.nome ?? "",
+    lote,
+    quantidadeSolicitada: quantidade ?? 0, // adiciona aqui
+    quantidadeAprovada: quantidade ?? 0,
+    preco: tipoMovimentacao === "ENTRADA" ? preco : null,
+  });
     setProdutoId(null);
     setLote("");
     setQuantidade(null);
@@ -162,7 +162,6 @@ export function ItensMovimentacaoForm({
                     className="p-button-sm p-button-success"
                     onClick={() => {
                       setLote(loteDisp.lote);
-                      setQuantidade(null);
                       setShowLoteDialog(false);
                     }}
                   />

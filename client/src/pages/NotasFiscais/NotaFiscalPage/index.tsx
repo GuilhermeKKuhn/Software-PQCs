@@ -33,12 +33,18 @@ export function NotaFiscalPage() {
     });
   };
 
+  function parseLocalDate(dateStr: string): Date {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+
   const columns = [
     { field: "numeroNotaFiscal", header: "Nº Nota" },
     {
       field: "dataRecebimento",
       header: "Data",
-      body: (row: INotaFiscal) => new Date(row.dataRecebimento).toLocaleDateString("pt-BR")
+      body: (row: INotaFiscal) =>
+        parseLocalDate(row.dataRecebimento).toLocaleDateString("pt-BR")
     },
     { field: "fornecedor.razaoSocial", header: "Fornecedor" },
   ];
@@ -78,7 +84,7 @@ export function NotaFiscalPage() {
               <div className="col-12">
                 <small className="text-muted">Data de Recebimento</small>
                 <div className="fw-bold">
-                  {new Date(notaSelecionada.dataRecebimento).toLocaleDateString("pt-BR")}
+                  {parseLocalDate(notaSelecionada.dataRecebimento).toLocaleDateString("pt-BR")}
                 </div>
               </div>
 

@@ -5,28 +5,37 @@ import { Calendar } from "primereact/calendar";
 import { useEffect } from "react";
 import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
 
-interface Props {
-  control: Control<IMovimentacaoForm>;
-  watch: UseFormWatch<IMovimentacaoForm>;
-  fornecedores: { id: number; razaoSocial: string }[];
-  laboratorios: { id: number; nomeLaboratorio: string }[];
-  disableTipo?: boolean;
-  hideNotaFiscal?: boolean;
-  hideDestino?: boolean;
-}
+  interface Props {
+    control: Control<IMovimentacaoForm>;
+    watch: UseFormWatch<IMovimentacaoForm>;
+    fornecedores: { id: number; razaoSocial: string }[];
+    laboratorios: { id: number; nomeLaboratorio: string }[];
+    disableTipo?: boolean;
+    hideNotaFiscal?: boolean;
+    hideDestino?: boolean;
+  }
 
-export function CabecalhoMovimentacaoForm({
-  control,
-  watch,
-  fornecedores,
-  laboratorios,
-  disableTipo = false,
-  hideNotaFiscal = false,
-  hideDestino = false,
-}: Props) {
-  const tipo = watch("tipo");
+  export function CabecalhoMovimentacaoForm({
+    control,
+    watch,
+    fornecedores,
+    laboratorios,
+    disableTipo = false,
+    hideNotaFiscal = false,
+    hideDestino = false,
+  }: Props) {
+    const tipo = watch("tipo");
 
-  useEffect(() => {}, [tipo]);
+  useEffect(() => {
+    console.log("Tipo de movimentação atual:", tipo, " | Edição habilitada:", !disableTipo);
+  }, [tipo, disableTipo]);
+
+  const formatarDateLocal = (data: Date | null) => {
+    if (!data) return null;
+    const tzOffset = data.getTimezoneOffset() * 60000; // em milissegundos
+    const localISOTime = new Date(data.getTime() - tzOffset).toISOString();
+    return localISOTime.split("T")[0]; // só a data
+  };
 
   return (
     <div className="container border rounded bg-white p-4">

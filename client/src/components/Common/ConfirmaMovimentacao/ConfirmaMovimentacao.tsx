@@ -1,9 +1,12 @@
 import { Button } from "primereact/button";
-import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
-import MovimentacaoService from "@/service/MovimentacaoService";
 import { Toast } from "primereact/toast";
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
+import MovimentacaoService from "@/service/MovimentacaoService";
+import SolicitacaoService from "@/service/SolicitacaoService";
+
+import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 
 interface Props {
@@ -12,44 +15,96 @@ interface Props {
   validarCabecalho: () => boolean;
 }
 
-export function ConfirmarMovimentacao({ dadosCabecalho, itens }: Props) {
-  const [loading, setLoading] = useState(false);
+export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho }: Props) {
   const toast = useRef<Toast>(null);
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!dadosCabecalho.tipo) {
-      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Tipo de movimentação é obrigatório." });
-      return;
-    }
-
-    if (itens.length === 0) {
-      toast.current?.show({ severity: "warn", summary: "Erro", detail: "Adicione ao menos um item." });
-      return;
-    }
+    if (!validarCabecalho()) return;
 
     const payload = {
       ...dadosCabecalho,
-      itens: itens.map(({ produtoId, quantidade, lote, preco }) => ({
+      itens: itens.map(({ produtoId, quantidadeAprovada, lote, preco }) => ({
         produtoId,
-        quantidade,
+        quantidade: quantidadeAprovada,
         lote,
         preco,
       })),
     };
 
+
     try {
       setLoading(true);
-      await MovimentacaoService.novaMovimentacao(payload as any);
-      toast.current?.show({ severity: "success", summary: "Sucesso", detail: "Movimentação realizada!" });
+
+      //await MovimentacaoService.novaMovimentacao(payload as any);
+      //toast.current?.show({
+      //  severity: "success",
+      //  summary: "Sucesso",
+      //  detail: "Movimentação realizada com sucesso!",
+     // })
+
+      if (id) {
+        const itensSolicitacaoPayload = itens.map((item) => ({
+          id: item.idSolicitacaoItem,
+          produtoId: item.produtoId,
+          quantidadeSolicitada: item.quantidadeSolicitada ?? 0,
+          quantidadeAprovada: item.quantidadeAprovada ?? 0,
+          loteSelecionado: item.lote,
+          laboratorioOrigemId: dadosCabecalho.laboratorioOrigem?.id ?? 0,
+        }));
+
+        await SolicitacaoService.aprovarSolicitacao(Number(id), itensSolicitacaoPayload);
+          toast.current?.show({
+          severity: "success",
+          summary: "Sucesso",
+          detail: "Movimentação realizada com sucesso!",
+        });
+      }else{
+        await MovimentacaoService.novaMovimentacao(payload as any);
+          toast.current?.show({
+          severity: "success",
+          summary: "Sucesso",
+          detail: "Movimentação realizada com sucesso!",
+        })
+      }
+
       setTimeout(() => navigate("/movimentacoes"), 1500);
     } catch (error: any) {
-      toast.current?.show({ severity: "error", summary: "Erro", detail: error.message || "Erro ao salvar." });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+        let mensagem =
+          error?.response?.data?.message ||         // Mensagem custom do back
+          error?.response?.data?.error ||           // Alternativa
+          error?.message ||                         // Mensagem padrão do JS
+          "Erro inesperado ao processar a movimentação.";
+
+        // Trata resposta HTML do Tomcat (500 com HTMLzão)
+        if (
+          typeof error?.response?.data === "string" &&
+          error.response.data.includes("HTTP Status 500")
+        ) {
+          const match = error.response.data.match(
+            /<b>Message<\/b>\s*Request processing failed:.*?:(.*?)<\/p>/
+          );
+          if (match && match[1]) {
+            mensagem = match[1].trim();
+          }
+        }
+
+        const erroEstoque = mensagem.includes("Quantidade insuficiente");
+
+        toast.current?.show({
+          severity: "error",
+          summary: erroEstoque ? "Estoque insuficiente" : "Erro ao salvar",
+          detail: mensagem,
+          life: 6000,
+        });
+      }
+        finally {
+              setLoading(false);
+            }
+          };
+
   return (
     <div className="container mt-4">
       <Toast ref={toast} />

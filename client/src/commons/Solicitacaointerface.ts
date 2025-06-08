@@ -5,7 +5,10 @@ export interface ISolicitacao {
   laboratorioId: number;
   dataSolicitacao: string;
   solicitante: string;
-  laboratorio: string;
+  laboratorio: {
+    nomeLaboratorio: string;
+    sala: string;
+  };
   status: string;
   itens: IItemSolicitacao[];
   
