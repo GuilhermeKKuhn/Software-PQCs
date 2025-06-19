@@ -133,25 +133,31 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
 
             LocalDate validade = null;
+            LocalDate fabricacao = null;
 
             // Se for TRANSFERENCIA, pega validade e nota da origem
             if (tipo == TipoMovimentacao.TRANSFERENCIA) {
                 Estoque estoqueOrigem = estoqueRepository.findByProdutoAndLaboratorioAndLote(produto, origem, item.getLote())
                         .orElseThrow(() -> new RuntimeException("Estoque de origem não encontrado."));
 
-                validade = estoqueOrigem.getValidade() != null ? estoqueOrigem.getValidade().toLocalDate() : null;
-                notaFiscal = estoqueOrigem.getNotaFiscal(); // pode ser null, mas mantém se houver
+                validade = estoqueOrigem.getDataValidade();
+                fabricacao = estoqueOrigem.getDataFabricacao();
+                notaFiscal = estoqueOrigem.getNotaFiscal();
             }
 
-            if (tipo == TipoMovimentacao.ENTRADA && produto.getValidade() != null && notaFiscal != null) {
-                validade = notaFiscal.getDataRecebimento().plusDays(produto.getValidade());
+            if (tipo == TipoMovimentacao.ENTRADA && notaFiscal != null) {
+                if (item.getDataValidade() == null || item.getDataFabricacao() == null) {
+                    throw new RuntimeException("Data de fabricação e validade devem ser informadas na entrada.");
+                }
+                validade = item.getDataValidade();
+                fabricacao = item.getDataFabricacao();
             }
 
             if (tipo == TipoMovimentacao.ENTRADA) {
                 criarItemNotaFiscal(notaFiscal, produto, item);
             }
 
-            Movimentacao movimentacao = criarMovimentacao(item, produto, origem, destino, notaFiscal, validade, tipo);
+            Movimentacao movimentacao = criarMovimentacao(item, produto, origem, destino, notaFiscal, validade, fabricacao, tipo);
             atualizarEstoque(movimentacao);
 
             movimentacaoRepository.save(movimentacao);
@@ -201,7 +207,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         itensNotaFiscalRepository.save(inf);
     }
 
-    private Movimentacao criarMovimentacao(ItemMovimentacaoDTO item, ProdutoQuimico produto, Laboratorio origem, Laboratorio destino, NotaFiscal nf, LocalDate validade, TipoMovimentacao tipo) {
+    private Movimentacao criarMovimentacao(ItemMovimentacaoDTO item, ProdutoQuimico produto, Laboratorio origem, Laboratorio destino, NotaFiscal nf, LocalDate validade, LocalDate fabricacao, TipoMovimentacao tipo) {
         Movimentacao m = new Movimentacao();
         m.setProduto(produto);
         m.setLaboratorioOrigem(origem);
@@ -213,6 +219,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         m.setNotaFiscal(nf);
         m.setUsuario(authService.getUsuarioLogado());
         m.setValidade(validade);
+        m.setDataFabricacao(fabricacao);
         return m;
     }
 
@@ -253,8 +260,8 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
                     novo.setLote(mov.getLote());
                     novo.setQuantidade(0.0F);
                     novo.setNotaFiscal(mov.getNotaFiscal());
-                    // Aqui definimos a validade apenas se for uma nova entrada
-                    novo.setValidade(mov.getValidade() != null ? mov.getValidade().atStartOfDay() : null);
+                    novo.setDataFabricacao(mov.getDataFabricacao());
+                    novo.setDataValidade(mov.getValidade());
                     return novo;
                 });
         estoque.setQuantidade((float) (estoque.getQuantidade() + mov.getQuantidade()));

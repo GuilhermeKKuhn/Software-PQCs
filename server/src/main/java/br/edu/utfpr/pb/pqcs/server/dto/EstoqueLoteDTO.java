@@ -6,17 +6,24 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 public class EstoqueLoteDTO {
+
     private String lote;
-    private LocalDateTime validade;
+    private LocalDate dataFabricacao;
+    private LocalDate dataValidade;
     private Double quantidade;
     private String laboratorio;
 
-    public EstoqueLoteDTO(String lote, LocalDateTime validade, Double quantidade, String laboratorio) {
+    public EstoqueLoteDTO(String lote, LocalDate dataFabricacao, LocalDate dataValidade, Double quantidade, String laboratorio) {
         this.lote = lote;
-        this.validade = validade;
+        this.dataFabricacao = dataFabricacao;
+        this.dataValidade = dataValidade;
         this.quantidade = quantidade;
         this.laboratorio = laboratorio;
     }

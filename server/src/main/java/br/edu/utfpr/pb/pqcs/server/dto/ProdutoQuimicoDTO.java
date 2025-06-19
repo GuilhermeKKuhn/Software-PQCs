@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Set;
+
 @Data
 public class ProdutoQuimicoDTO {
 
@@ -19,19 +21,20 @@ public class ProdutoQuimicoDTO {
     private String cas;
 
     @NotNull
-    private Integer validade;
-
-    @NotNull
     private String caracteristica;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private OrgaoControlador orgao;
 
     @NotNull
     private String estadoFisico;
 
     @NotNull
+    private String concentracao;
+
+    @NotNull
+    private String densidade;
+
+    @NotNull
     private UnidadeMedidaDTO unidadeMedida;
 
+    @NotNull
+    private Set<OrgaoControlador> orgaos;
 }

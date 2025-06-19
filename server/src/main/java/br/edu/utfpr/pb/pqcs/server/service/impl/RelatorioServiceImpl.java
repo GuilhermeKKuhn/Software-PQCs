@@ -163,8 +163,10 @@ public class RelatorioServiceImpl {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Produtos");
 
-            // Cabeçalho
-            String[] headers = {"Nome", "CAS", "Validade (dias)", "Característica", "Estado Físico", "Órgão", "Unidade"};
+            String[] headers = {
+                    "Nome", "CAS", "Concentração", "Densidade",
+                    "Característica", "Estado Físico", "Órgãos Controladores", "Unidade"
+            };
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
                 headerRow.createCell(i).setCellValue(headers[i]);
@@ -175,11 +177,17 @@ public class RelatorioServiceImpl {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(p.getNome());
                 row.createCell(1).setCellValue(p.getCas());
-                row.createCell(2).setCellValue(p.getValidade());
-                row.createCell(3).setCellValue(p.getCaracteristica());
-                row.createCell(4).setCellValue(p.getEstadoFisico());
-                row.createCell(5).setCellValue(p.getOrgao().name());
-                row.createCell(6).setCellValue(p.getUnidadeMedida() != null ? p.getUnidadeMedida().getSigla() : "");
+                row.createCell(2).setCellValue(p.getConcentracao());
+                row.createCell(3).setCellValue(p.getDensidade());
+                row.createCell(4).setCellValue(p.getCaracteristica());
+                row.createCell(5).setCellValue(p.getEstadoFisico());
+
+                String orgaos = p.getOrgaos() != null
+                        ? String.join(", ", p.getOrgaos().stream().map(Enum::name).toList())
+                        : "";
+                row.createCell(6).setCellValue(orgaos);
+
+                row.createCell(7).setCellValue(p.getUnidadeMedida() != null ? p.getUnidadeMedida().getSigla() : "");
             }
 
             for (int i = 0; i < headers.length; i++) {
@@ -192,12 +200,13 @@ public class RelatorioServiceImpl {
         }
     }
 
+
     public ByteArrayInputStream gerarRelatorioEstoque(List<Estoque> estoques) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Estoque");
 
             String[] headers = {
-                    "Produto", "Quantidade", "Lote", "Validade", "Laboratório",
+                    "Produto", "Quantidade", "Lote", "Validade", "Fabricação", "Laboratório",
                     "Nota Fiscal Nº", "Data de Recebimento", "Fornecedor"
             };
 
@@ -213,13 +222,14 @@ public class RelatorioServiceImpl {
                 row.createCell(0).setCellValue(e.getProduto().getNome());
                 row.createCell(1).setCellValue(e.getQuantidade());
                 row.createCell(2).setCellValue(e.getLote() != null ? e.getLote() : "");
-                row.createCell(3).setCellValue(e.getValidade() != null ? e.getValidade().toLocalDate().toString() : "");
-                row.createCell(4).setCellValue(e.getLaboratorio().getNomeLaboratorio());
+                row.createCell(3).setCellValue(e.getDataValidade() != null ? e.getDataValidade().toString() : "");
+                row.createCell(4).setCellValue(e.getDataFabricacao() != null ? e.getDataFabricacao().toString()  : "");
+                row.createCell(5).setCellValue(e.getLaboratorio().getNomeLaboratorio());
 
                 if (e.getNotaFiscal() != null) {
-                    row.createCell(5).setCellValue(e.getNotaFiscal().getNumeroNotaFiscal());
-                    row.createCell(6).setCellValue(e.getNotaFiscal().getDataRecebimento().toString());
-                    row.createCell(7).setCellValue(
+                    row.createCell(6).setCellValue(e.getNotaFiscal().getNumeroNotaFiscal());
+                    row.createCell(7).setCellValue(e.getNotaFiscal().getDataRecebimento().toString());
+                    row.createCell(8).setCellValue(
                             e.getNotaFiscal().getFornecedor() != null
                                     ? e.getNotaFiscal().getFornecedor().getRazaoSocial()
                                     : ""

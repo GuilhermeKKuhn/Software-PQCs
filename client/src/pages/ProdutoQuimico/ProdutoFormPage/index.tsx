@@ -8,7 +8,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Password } from 'primereact/password';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
-import { IProdutoQuimico } from '@/commons/ProdutoQuimicoInterface';
+import { IProdutoQuimico, OrgaoControlador } from '@/commons/ProdutoQuimicoInterface';
 import ProdutoQuimicoService from '@/service/ProdutoQuimicoService';
 import { IUnidadeMedida } from '@/commons/UnidadeMedidaInterface';
 import UnidadeMedidaService from '@/service/UnidadeMedidaService';
@@ -22,11 +22,12 @@ export function ProdutoFormPage() {
   const [form, setForm] = useState<IProdutoQuimico>({
     nome: '',
     cas: '',
-    validade: 0,
     caracteristica: '',
     estadoFisico: '',
-    orgao: '',
-    unidadeMedida: {id: 0},
+    concentracao: '',
+    densidade: '',
+    orgaos: [],
+    unidadeMedida: { id: 0 },
   });
 
   const [unidade, setUnidade] = useState<IUnidadeMedida[]>([]);
@@ -36,7 +37,10 @@ export function ProdutoFormPage() {
     UnidadeMedidaService.listarUnidadesMedida().then((res) => setUnidade(res.data))
     if (isEdit) {
       ProdutoQuimicoService.buscarProdutoQuimicoPorId(Number(id)).then((res) => {
-        const productData = { ...res.data, password: '' };
+        const productData = {
+        ...res.data,
+        orgaos: res.data.orgaos ?? [],
+      };
         setForm(productData);
       });
     }
@@ -44,13 +48,23 @@ export function ProdutoFormPage() {
 
   const validateForm = () => {
     const newErrors: { [key: string]: boolean } = {};
-    const requiredFields = ['nome', 'cas', 'validade', 'caracteristica', 'estadoFisico', 'orgao', 'unidadeMedida'];
+    const requiredFields = [
+      'nome', 'cas', 'concentracao', 'densidade',
+      'caracteristica', 'estadoFisico', 'orgaos', 'unidadeMedida'
+    ];
 
     requiredFields.forEach((field) => {
-      if (!form[field as keyof IProdutoQuimico]) {
+      const value = form[field as keyof IProdutoQuimico];
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) {
+          newErrors[field] = true;
+        }
+      } else if (!value || (typeof value === 'object' && value.id === 0)) {
         newErrors[field] = true;
       }
     });
+
     setErrors(newErrors);
     return newErrors;
   };
@@ -88,14 +102,14 @@ export function ProdutoFormPage() {
         }, 1000);
       })
       .catch((err) => {
-        const validationErrors = err.response?.data?.validationErrors;
+        const errorMessage =
+          err.response?.data?.message || 'Erro ao salvar produto. Verifique os dados.';
 
-        const backendMsg = validationErrors?.password || 'Erro ao salvar usuário.';
         toast.current?.show({
           severity: 'error',
-          summary: 'Erro do servidor',
-          detail: backendMsg,
-          life: 4000,
+          summary: 'Atenção',
+          detail: errorMessage,
+          life: 5000,
         });
       });
   };
@@ -105,6 +119,12 @@ export function ProdutoFormPage() {
     { label: "Líquido", value: "LIQUIDO" },
     { label: "Gasoso", value: "GASOSO" },
   ];
+
+  const orgaosControladores: { label: string; value: OrgaoControlador }[] = [
+  { label: 'Polícia Federal', value: 'POLICIA_FEDERAL' },
+  { label: 'Polícia Militar', value: 'POLICIA_MILITAR' },
+  { label: 'Exército', value: 'EXERCITO' },
+];
 
   const caracteristicas = [
     { label: "Ácido", value: "ACIDO" },
@@ -133,7 +153,7 @@ export function ProdutoFormPage() {
             <InputText
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
-              className={classNames({ 'p-invalid': errors.name })}
+              className={classNames({ 'p-invalid': errors.nome })}
             />
           </div>
 
@@ -142,7 +162,25 @@ export function ProdutoFormPage() {
             <InputText
               value={form.cas}
               onChange={(e) => setForm({ ...form, cas: e.target.value })}
-              className={classNames({ 'p-invalid': errors.email })}
+              className={classNames({ 'p-invalid': errors.cas })}
+            />
+          </div>
+
+          <div className="field">
+            <label>Concentração</label>
+            <InputText
+              value={form.concentracao}
+              onChange={(e) => setForm({ ...form, concentracao: e.target.value })}
+              className={classNames({ 'p-invalid': errors.concentracao })}
+            />
+          </div>
+
+          <div className="field">
+            <label>Densidade</label>
+            <InputText
+              value={form.densidade}
+              onChange={(e) => setForm({ ...form, densidade: e.target.value })}
+              className={classNames({ 'p-invalid': errors.densidade })}
             />
           </div>
 
@@ -175,21 +213,6 @@ export function ProdutoFormPage() {
           </div>   
 
           <div className="field">
-            <label>Órgão Controlador</label>
-            <Dropdown
-              value={form.orgao}
-              onChange={(e) => setForm({ ...form, orgao: e.value })}
-              options={[
-                { label: 'Policia Federal', value: 'POLICIA_FEDERAL' },
-                { label: 'Policia Militar', value: 'POLICIA_MILITAR' },
-                { label: 'Exército', value: 'EXERCITO' },
-              ]}
-              placeholder="Selecione um Órgão Controlador"
-              className={classNames({ 'p-invalid': errors.orgao })}
-            />
-          </div>
-
-          <div className="field">
             <label>Unidade de Medida</label>
             <Dropdown
               value={form.unidadeMedida.id}
@@ -200,20 +223,32 @@ export function ProdutoFormPage() {
               onChange={(e) =>
                 setForm({ ...form, unidadeMedida: { id: e.value } })
               }
+              className={classNames({ 'p-invalid': errors.unidadeMedida })}
             />
           </div>
 
           <div className="field">
-            <label htmlFor="validade">Validade (dias)</label>
-            <InputText
-              id="validade"
-              type="number"
-              value={String(form.validade)}
-              onChange={(e) => setForm({ ...form, validade: Number(e.target.value) })}
-              placeholder="Ex: 30"
-              className={classNames({ 'p-invalid': errors.validade })}
-            />
+            <label>Órgãos Controladores</label>
+            <div className="flex flex-column gap-2">
+              {orgaosControladores.map((orgao) => (
+                <div key={orgao.value} className="flex align-items-center">
+                  <input
+                    type="checkbox"
+                    checked={form.orgaos.includes(orgao.value)}
+                    onChange={(e) => {
+                      const selected = form.orgaos.includes(orgao.value)
+                        ? form.orgaos.filter((o) => o !== orgao.value)
+                        : [...form.orgaos, orgao.value];
+                      setForm({ ...form, orgaos: selected });
+                    }}
+                  />
+                  <label className="ml-2">{orgao.label}</label>
+                </div>
+              ))}
+            </div>
+            {errors.orgaos && <small className="p-error">Selecione pelo menos um órgão.</small>}
           </div>
+
           <div className="mt-4 flex gap-2">
             <Button label="Salvar" icon="pi pi-check" onClick={handleSubmit} />
             <Button

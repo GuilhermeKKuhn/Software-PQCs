@@ -7,21 +7,18 @@ import br.edu.utfpr.pb.pqcs.server.model.Departamento;
 import br.edu.utfpr.pb.pqcs.server.model.Estoque;
 import br.edu.utfpr.pb.pqcs.server.model.Laboratorio;
 import br.edu.utfpr.pb.pqcs.server.model.ProdutoQuimico;
-import org.hibernate.sql.ast.tree.expression.JdbcParameter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
-    List<Estoque> findByProdutoAndLaboratorioOrderByValidadeAsc(
+    List<Estoque> findByProdutoAndLaboratorioOrderByDataValidadeAsc(
             ProdutoQuimico produto, Laboratorio laboratorio
     );
 
@@ -31,20 +28,16 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
-        e.lote, SUM(e.quantidade), MAX(e.validade), e.laboratorio.id)
+        e.lote, SUM(e.quantidade), MAX(e.dataFabricacao), MAX(e.dataValidade), e.laboratorio.id, e.laboratorio.nomeLaboratorio)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
-    GROUP BY e.lote, e.laboratorio.id
+    GROUP BY e.lote, e.laboratorio.id, e.laboratorio.nomeLaboratorio
     HAVING SUM(e.quantidade) > 0""")
     List<LoteDisponivelDTO> buscarLotesDisponiveisPorProduto(@Param("produtoId") Long produtoId);
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
-        e.lote,
-        CAST(e.quantidade AS double),
-        e.validade,
-        e.laboratorio.id,
-        e.laboratorio.nomeLaboratorio)
+        e.lote, CAST(e.quantidade AS double), e.dataFabricacao, e.dataValidade, e.laboratorio.id, e.laboratorio.nomeLaboratorio)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
       AND e.laboratorio.id = :laboratorioId
@@ -53,7 +46,6 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
             @Param("produtoId") Long produtoId,
             @Param("laboratorioId") Long laboratorioId
     );
-
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
@@ -64,12 +56,11 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueLoteDTO(
-        e.lote, e.validade, CAST(e.quantidade AS double), e.laboratorio.nomeLaboratorio)
+        e.lote, e.dataFabricacao, e.dataValidade, CAST(e.quantidade AS double), e.laboratorio.nomeLaboratorio)
     FROM Estoque e
     WHERE e.produto.id = :produtoId AND e.quantidade > 0
-    ORDER BY e.validade ASC""")
+    ORDER BY e.dataValidade ASC""")
     List<EstoqueLoteDTO> listarLotesPorProduto(@Param("produtoId") Long produtoId);
-
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
@@ -86,7 +77,6 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     WHERE e.laboratorio.departamento.id = :departamentoId
     GROUP BY e.produto.id, e.produto.nome""")
     List<EstoqueProdutoDTO> listarResumoPorProdutoEDepartamento(@Param("departamentoId") Long departamentoId);
-
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
@@ -106,11 +96,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
-        e.lote,
-        CAST(e.quantidade AS double),
-        e.validade,
-        e.laboratorio.id,
-        e.laboratorio.nomeLaboratorio)
+        e.lote, CAST(e.quantidade AS double), e.dataFabricacao, e.dataValidade, e.laboratorio.id, e.laboratorio.nomeLaboratorio)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
       AND e.laboratorio.id IN :laboratoriosIds
@@ -122,11 +108,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(
-        e.lote,
-        CAST(e.quantidade AS double),
-        e.validade,
-        e.laboratorio.id,
-        e.laboratorio.nomeLaboratorio)
+        e.lote, CAST(e.quantidade AS double), e.dataFabricacao, e.dataValidade, e.laboratorio.id, e.laboratorio.nomeLaboratorio)
     FROM Estoque e
     WHERE e.produto.id = :produtoId
       AND e.laboratorio.departamento.id IN :departamentosIds
@@ -135,5 +117,4 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
             @Param("produtoId") Long produtoId,
             @Param("departamentosIds") List<Long> departamentosIds
     );
-
 }

@@ -37,6 +37,7 @@ public class Movimentacao {
 
     private LocalDate validade;
 
+    private LocalDate dataFabricacao;
     @ManyToOne
     @NotNull
     @JoinColumn(name = "notaFiscal_id", referencedColumnName = "id")

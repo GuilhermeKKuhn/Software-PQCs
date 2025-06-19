@@ -6,15 +6,16 @@ export interface IProdutoQuimico {
   id?: number;
   nome: string;
   cas: string;
-  validade: number; 
   caracteristica: string;
-  orgao: OrgaoControlador;
   estadoFisico: string;
+  concentracao: string;
+  densidade: string;
+  orgaos: OrgaoControlador[]; // Agora é array
   unidadeMedida: {
     id: number;
-    nome?: string; 
+    nome?: string;
     sigla?: string;
-  };
+  }
 }
 
 

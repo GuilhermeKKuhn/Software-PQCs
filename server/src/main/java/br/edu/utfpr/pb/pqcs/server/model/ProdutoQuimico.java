@@ -2,13 +2,20 @@ package br.edu.utfpr.pb.pqcs.server.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name = "tb_produto_quimico")
+@Table(
+        name = "tb_produto_quimico",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"cas", "concentracao", "densidade"}
+        )
+)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -30,17 +37,24 @@ public class ProdutoQuimico {
     private String cas;
 
     @NotNull
-    private Integer validade;
-
-    @NotNull
     private String caracteristica;
 
     @NotNull
     private String estadoFisico;
 
     @NotNull
+    private String concentracao;
+
+    @NotNull
+    private String densidade;
+
+    @Size(min = 1)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "produto_quimico_orgao",
+            joinColumns = @JoinColumn(name = "produto_id"))
+    @Column(name = "orgao")
     @Enumerated(EnumType.STRING)
-    private OrgaoControlador orgao;
+    private Set<OrgaoControlador> orgaos;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "unidademedida_id", referencedColumnName = "id")
@@ -53,6 +67,7 @@ public class ProdutoQuimico {
         ProdutoQuimico produtoQuimico = (ProdutoQuimico) o;
         return Objects.equals(id, produtoQuimico.id);
     }
+
 
     @Override
     public int hashCode() {

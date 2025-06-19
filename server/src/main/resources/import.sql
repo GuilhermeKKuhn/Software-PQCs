@@ -17,5 +17,9 @@ INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado,
 INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com');
 INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
 
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', 24, 'Corrosivo', 'POLICIA_FEDERAL', 'Líquido', 1);
-INSERT INTO tb_produto_quimico (nome, cas, validade, caracteristica, orgao, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', 12, 'Corrosivo', 'EXERCITO', 'Líquido', 2);
+INSERT INTO tb_produto_quimico (nome, cas, concentracao, densidade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', '98%', '1.84', 'CORROSIVO', 'LIQUIDO', 1);
+INSERT INTO tb_produto_quimico (nome, cas, concentracao, densidade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', '37%', '1.19', 'CORROSIVO', 'LIQUIDO', 2);
+
+INSERT INTO produto_quimico_orgao (produto_id, orgao) VALUES (1, 'POLICIA_FEDERAL');
+INSERT INTO produto_quimico_orgao (produto_id, orgao) VALUES (1, 'EXERCITO');
+INSERT INTO produto_quimico_orgao (produto_id, orgao) VALUES (2, 'EXERCITO');

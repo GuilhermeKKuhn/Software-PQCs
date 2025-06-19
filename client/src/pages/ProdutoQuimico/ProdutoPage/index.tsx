@@ -23,15 +23,13 @@ export function ProdutoPage() {
   
     const filteredProdutos = produtos.filter((produtos) => {
       const termo = search.toLowerCase();
-
       return (
         produtos.nome.toLowerCase().includes(termo) ||
         produtos.cas.toLowerCase().includes(termo) ||
         produtos.estadoFisico.toLowerCase().includes(termo) ||
         produtos.caracteristica.toLowerCase().includes(termo) ||
-        produtos.orgao.toLowerCase().includes(termo) ||
-        produtos.unidadeMedida.nome?.toLowerCase().includes(termo) ||
-        produtos.validade.toFixed().toLowerCase().includes(termo)
+        produtos.orgaos.join(', ').toLowerCase().includes(termo) ||
+        produtos.unidadeMedida.nome?.toLowerCase().includes(termo)
       );
     });
   
@@ -68,23 +66,17 @@ export function ProdutoPage() {
     { field: "estadoFisico", header: "Estado Físico", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
     { field: "caracteristica", header: "Característica", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
     {
-      field: "orgao",
-      header: "Órgão Controlador",
-      body: (rowData: IProdutoQuimico) => orgaoLabels[rowData.orgao] || rowData.orgao,
-      headerStyle: { textAlign: 'left' as const},
-      bodyStyle: { textAlign: 'center' as const},
+      field: "orgaos",
+      header: "Órgãos Controladores",
+      body: (rowData: IProdutoQuimico) => 
+        rowData.orgaos.map((o) => orgaoLabels[o]).join(", "),
+      headerStyle: { textAlign: 'left' as const },
+      bodyStyle: { textAlign: 'center' as const },
     },
     {
       field: "unidadeMedida",
       header: "Unidade de Medida",
       body: (rowData: IProdutoQuimico) => rowData?.unidadeMedida.sigla,
-      headerStyle: { textAlign: 'center' as const},
-      bodyStyle: { textAlign: 'center' as const}
-    },
-    {
-      field: "validade",
-      header: "Validade",
-      body: (rowData: IProdutoQuimico) => `${rowData.validade} dias`,
       headerStyle: { textAlign: 'center' as const},
       bodyStyle: { textAlign: 'center' as const}
     },

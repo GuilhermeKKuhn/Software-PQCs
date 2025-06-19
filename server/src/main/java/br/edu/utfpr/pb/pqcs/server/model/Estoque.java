@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,7 +38,9 @@ public class Estoque {
     @NotNull
     private NotaFiscal notaFiscal;
 
-    private LocalDateTime validade;
+    private LocalDate dataFabricacao;
+
+    private LocalDate dataValidade;
 
     private String lote;
 
