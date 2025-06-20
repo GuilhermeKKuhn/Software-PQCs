@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class FornecedorDTO {
 
@@ -34,5 +36,8 @@ public class FornecedorDTO {
 
     @NotNull
     private String email;
+
+    @NotNull
+    private LocalDate dataValidadeLicenca;
 
 }

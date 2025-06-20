@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "tb_fornecedor")
 @Builder
@@ -39,4 +41,9 @@ public class Fornecedor {
 
     @NotNull
     private String email;
+
+    @NotNull
+    @Column(name = "data_validade_licenca")
+    private LocalDate dataValidadeLicenca;
+
 }

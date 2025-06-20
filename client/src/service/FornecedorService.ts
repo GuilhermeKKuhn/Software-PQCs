@@ -1,7 +1,7 @@
-import { IFornecedor } from "@/commons/FornecedorInterface";
+import { IFornecedor, FornecedorPayload } from "@/commons/FornecedorInterface";
 import { api } from "@/lib/axios";
 
-const cadastrarFornecedor = (fornecedor: IFornecedor) => {
+const cadastrarFornecedor = (fornecedor: FornecedorPayload) => {
   return api.post("/fornecedor", fornecedor);
 };
 
@@ -10,10 +10,10 @@ const listarFornecedores = () => {
 };
 
 const buscarFornecedorPorId = (id: number) => {
-  return api.get(`/fornecedor/${id}`);
+  return api.get<IFornecedor>(`/fornecedor/${id}`);
 };
 
-const editarFornecedor = (id: number, fornecedor: IFornecedor) => {
+const editarFornecedor = (id: number, fornecedor: FornecedorPayload) => {
   return api.put(`/fornecedor/${id}`, fornecedor);
 };
 

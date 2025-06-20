@@ -13,9 +13,9 @@ INSERT INTO tb_departamento (nome_departamento, sigla, responsavel_id) VALUES ('
 INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Química', 'A1', 1, 3);
 INSERT INTO tb_laboratorio (nome_laboratorio, sala, departamento_id, responsavel_id) VALUES ('Lab Física', 'B1', 2, 4);
 
-INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Gás', '12345678901234', 'Rua do Gás', '100', 'Pato Branco', 'PR', '(43) 98888-7777', 'gas@fornecedor.com');
-INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com');
-INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email, data_validade_licenca) VALUES ('Fornecedor de Gás', '12345678901234', 'Rua do Gás', '100', 'Pato Branco', 'PR', '(43) 98888-7777', 'gas@fornecedor.com', '2025-04-30');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email, data_validade_licenca) VALUES ('Fornecedor de Ácido', '43210987654321', 'Av. dos Produtos', '200', 'Curitiba', 'PR', '(41) 97777-8888', 'acido@fornecedor.com', '2025-11-30');
+INSERT INTO tb_fornecedor (razao_Social, cnpj, endereco, numero, cidade, estado, telefone, email, data_validade_licenca) VALUES ('Fornecedor de Reagentes', '11122233344455', 'Travessa da Química', '50', 'Maringá', 'PR', '(44) 95555-1111', 'reagentes@fornecedor.com', '2025-10-15');
 
 INSERT INTO tb_produto_quimico (nome, cas, concentracao, densidade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Sulfúrico', '7664-93-9', '98%', '1.84', 'CORROSIVO', 'LIQUIDO', 1);
 INSERT INTO tb_produto_quimico (nome, cas, concentracao, densidade, caracteristica, estado_fisico, unidademedida_id) VALUES ('Ácido Clorídrico', '7647-01-0', '37%', '1.19', 'CORROSIVO', 'LIQUIDO', 2);
