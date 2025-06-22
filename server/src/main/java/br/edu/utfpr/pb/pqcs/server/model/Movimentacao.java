@@ -1,5 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -35,9 +36,12 @@ public class Movimentacao {
     @NotNull
     private String lote;
 
-    private LocalDate validade;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate Fabricacao;
 
-    private LocalDate dataFabricacao;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate Validade;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "notaFiscal_id", referencedColumnName = "id")

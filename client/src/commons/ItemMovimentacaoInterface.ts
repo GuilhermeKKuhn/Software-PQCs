@@ -1,10 +1,17 @@
 export interface IItemMovimentacao {
   produtoId: number;
   nomeProduto: string;
-  quantidadeSolicitada: number;
-  quantidadeAprovada: number; 
   lote: string;
+  quantidadeSolicitada: number;
+  quantidadeAprovada: number;
   preco?: number | null;
-  validade?: string;
+
+  validade?: string | null;
+  fabricacao?: string | null;
+
+  cas?: string;
+  densidade?: string;
+  concentracao?: string;
+
   idSolicitacaoItem?: number;
 }

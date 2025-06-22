@@ -11,4 +11,6 @@ export interface IItemNota {
   nomeProduto: string;
   lote: string;
   quantidade: number;
+  fabricacao: string | null;
+  validade: string | null;
 }

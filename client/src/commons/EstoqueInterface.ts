@@ -6,8 +6,9 @@ export interface IEstoqueProduto {
 
 export interface IEstoqueLote {
   lote: string;
-  validade: string;
+  dataValidade: string; 
   quantidade: number;
   laboratorio: string;
-   nomeLaboratorio?: string;
+  nomeLaboratorio?: string;
 }
+

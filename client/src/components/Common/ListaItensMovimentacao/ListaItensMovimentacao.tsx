@@ -1,18 +1,16 @@
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 import { Button } from "primereact/button";
-import { InputNumber } from "primereact/inputnumber";
 
 interface Props {
   itens: IItemMovimentacao[];
-  onRemove: (index: number) => void;
-  onSelecionarLote: (index: number, produtoId: number) => void;
-  onEditarQuantidade?: (index: number, novaQtd: number) => void;
+  onEditar: (index: number, item: IItemMovimentacao) => void;
+  onRemover: (index: number) => void;
 }
+
 export function ListaItensMovimentacao({
   itens,
-  onRemove,
-  onSelecionarLote,
-  onEditarQuantidade,
+  onEditar,
+  onRemover,
 }: Props) {
   return (
     <div className="container my-4">
@@ -21,51 +19,52 @@ export function ListaItensMovimentacao({
       {itens.length === 0 ? (
         <p className="text-muted">Nenhum item adicionado.</p>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Produto</th>
-                <th>Lote</th>
-                <th>Quantidade</th>
-                <th className="text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itens.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.nomeProduto}</td>
-                  <td>
-                    <Button
-                      label={item.lote || "Selecionar"}
-                      className="p-button-text"
-                      onClick={() => onSelecionarLote(index, item.produtoId)}
-                    />
-                  </td>
-                  <td>
-                   <InputNumber
-                      value={item.quantidadeAprovada}
-                      onValueChange={(e) =>
-                        onEditarQuantidade?.(index, e.value ?? 0)
-                      }
-                      placeholder={`Solicitado: ${item.quantidadeSolicitada}`}
-                      className="w-full"
-                      min={0}
-                    />
-                  </td>
-                  <td className="text-center">
-                    <Button
-                      icon="pi pi-trash"
-                      className="p-button-danger p-button-sm"
-                      onClick={() => onRemove(index)}
-                      tooltip="Remover item"
-                      tooltipOptions={{ position: "top" }}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="d-grid gap-3">
+          {itens.map((item, index) => (
+            <div
+              key={index}
+              className="border rounded p-3 bg-light shadow-sm d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <strong>{item.nomeProduto}</strong>
+                <div className="small text-muted">
+                  <span className="me-3">
+                    <strong>Lote:</strong> {item.lote || "-"}
+                  </span>
+                  <span className="me-3">
+                    <strong>Qtd:</strong> {item.quantidadeAprovada}
+                  </span>
+                  {item.fabricacao && (
+                    <span className="me-3">
+                      <strong>Fabricação:</strong>{" "}
+                      {new Date(item.fabricacao).toLocaleDateString()}
+                    </span>
+                  )}
+                  {item.validade && (
+                    <span className="me-3">
+                      <strong>Validade:</strong>{" "}
+                      {new Date(item.validade).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="d-flex gap-2">
+                <Button
+                  icon="pi pi-pencil"
+                  className="p-button-rounded p-button-info p-button-sm"
+                  tooltip="Editar"
+                  onClick={() => onEditar(index, item)}
+                />
+                <Button
+                  icon="pi pi-trash"
+                  className="p-button-rounded p-button-danger p-button-sm"
+                  tooltip="Remover"
+                  onClick={() => onRemover(index)}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

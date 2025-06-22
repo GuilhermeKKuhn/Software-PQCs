@@ -21,29 +21,46 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
 
+  const formatarData = (data: string | Date | null | undefined) => {
+    if (!data) return null;
+    const dateObj = typeof data === "string" ? new Date(data) : data;
+    return dateObj.toISOString().split("T")[0]; // yyyy-MM-dd
+  };
+
   const handleSubmit = async () => {
     if (!validarCabecalho()) return;
 
+    if (dadosCabecalho.tipo === "ENTRADA") {
+      const algumSemDatas = itens.some(
+        (item) => !item.fabricacao || !item.validade
+      );
+      if (algumSemDatas) {
+        toast.current?.show({
+          severity: "warn",
+          summary: "Atenção",
+          detail: "Todos os itens precisam ter data de fabricação e validade na entrada.",
+        });
+        return;
+      }
+    }
+
     const payload = {
       ...dadosCabecalho,
-      itens: itens.map(({ produtoId, quantidadeAprovada, lote, preco }) => ({
-        produtoId,
-        quantidade: quantidadeAprovada,
-        lote,
-        preco,
-      })),
+      laboratorioOrigem: dadosCabecalho.tipo === "ENTRADA" ? null : dadosCabecalho.laboratorioOrigem,
+      itens: itens.map(
+        ({ produtoId, quantidadeAprovada, lote, preco, fabricacao, validade }) => ({
+          produtoId,
+          quantidade: quantidadeAprovada,
+          lote,
+          preco,
+          fabricacao: formatarData(fabricacao),
+          validade: formatarData(validade),
+        })
+      ),
     };
-
 
     try {
       setLoading(true);
-
-      //await MovimentacaoService.novaMovimentacao(payload as any);
-      //toast.current?.show({
-      //  severity: "success",
-      //  summary: "Sucesso",
-      //  detail: "Movimentação realizada com sucesso!",
-     // })
 
       if (id) {
         const itensSolicitacaoPayload = itens.map((item) => ({
@@ -56,54 +73,57 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
         }));
 
         await SolicitacaoService.aprovarSolicitacao(Number(id), itensSolicitacaoPayload);
-          toast.current?.show({
+
+        toast.current?.show({
           severity: "success",
           summary: "Sucesso",
           detail: "Movimentação realizada com sucesso!",
         });
-      }else{
+
+      } else {
         await MovimentacaoService.novaMovimentacao(payload as any);
-          toast.current?.show({
+
+        toast.current?.show({
           severity: "success",
           summary: "Sucesso",
           detail: "Movimentação realizada com sucesso!",
-        })
+        });
       }
 
       setTimeout(() => navigate("/movimentacoes"), 1500);
+
     } catch (error: any) {
-        let mensagem =
-          error?.response?.data?.message ||         // Mensagem custom do back
-          error?.response?.data?.error ||           // Alternativa
-          error?.message ||                         // Mensagem padrão do JS
-          "Erro inesperado ao processar a movimentação.";
+      let mensagem =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Erro inesperado ao processar a movimentação.";
 
-        // Trata resposta HTML do Tomcat (500 com HTMLzão)
-        if (
-          typeof error?.response?.data === "string" &&
-          error.response.data.includes("HTTP Status 500")
-        ) {
-          const match = error.response.data.match(
-            /<b>Message<\/b>\s*Request processing failed:.*?:(.*?)<\/p>/
-          );
-          if (match && match[1]) {
-            mensagem = match[1].trim();
-          }
+      if (
+        typeof error?.response?.data === "string" &&
+        error.response.data.includes("HTTP Status 500")
+      ) {
+        const match = error.response.data.match(
+          /<b>Message<\/b>\s*Request processing failed:.*?:(.*?)<\/p>/
+        );
+        if (match && match[1]) {
+          mensagem = match[1].trim();
         }
-
-        const erroEstoque = mensagem.includes("Quantidade insuficiente");
-
-        toast.current?.show({
-          severity: "error",
-          summary: erroEstoque ? "Estoque insuficiente" : "Erro ao salvar",
-          detail: mensagem,
-          life: 6000,
-        });
       }
-        finally {
-              setLoading(false);
-            }
-          };
+
+      const erroEstoque = mensagem.includes("Quantidade insuficiente");
+
+      toast.current?.show({
+        severity: "error",
+        summary: erroEstoque ? "Estoque insuficiente" : "Erro ao salvar",
+        detail: mensagem,
+        life: 6000,
+      });
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container mt-4">

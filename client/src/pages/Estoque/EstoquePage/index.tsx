@@ -9,10 +9,11 @@ import { IEstoqueLote, IEstoqueProduto } from "@/commons/EstoqueInterface";
 import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
 import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
-
 export function EstoquePage() {
   const user = useAuthUser();
   const [search, setSearch] = useState("");
+  const [searchDialog, setSearchDialog] = useState("");
+
   const [produtos, setProdutos] = useState<IEstoqueProduto[]>([]);
   const [produtoSelecionado, setProdutoSelecionado] = useState<IEstoqueProduto | null>(null);
   const [lotes, setLotes] = useState<IEstoqueLote[]>([]);
@@ -21,44 +22,61 @@ export function EstoquePage() {
   useEffect(() => {
     if (!user) return;
 
-    if (user.tipoPerfil === "ADMINISTRADOR") {
-      EstoqueService.buscarEstoquePorProduto().then((res) => {
+    const carregar = async () => {
+      if (user.tipoPerfil === "ADMINISTRADOR") {
+        const res = await EstoqueService.buscarEstoquePorProduto();
         setProdutos(res.data);
-      });
-    } else if (user.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
-      EstoqueService.buscarEstoquePorLaboratorios(user.laboratoriosId).then((res) => {
+      } else if (user.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
+        const res = await EstoqueService.buscarEstoquePorLaboratorios(user.laboratoriosId);
         setProdutos(res.data);
-      });
-    } else if (user.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
-      EstoqueService.buscarEstoquePorDepartamentos(user.departamentosId).then((res) => {
+      } else if (user.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
+        const res = await EstoqueService.buscarEstoquePorDepartamentos(user.departamentosId);
         setProdutos(res.data);
-      });
-    }
+      }
+    };
+
+    carregar();
   }, [user]);
 
-  const filteredProdutos = produtos.filter((produto) =>
-    produto.nome.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProdutos = produtos.filter((p) => {
+    const termo = search.toLowerCase();
+    return (
+      p.nome.toLowerCase().includes(termo) ||
+      String(p.quantidadeTotal).includes(termo)
+    );
+  });
+
+  const filteredLotes = lotes.filter((l) => {
+    const termo = searchDialog.toLowerCase();
+    const laboratorio = l.laboratorio?.toLowerCase() ?? l.nomeLaboratorio?.toLowerCase() ?? "";
+    const lote = l.lote?.toLowerCase() ?? "";
+    const validade = l.dataValidade ?? "";
+
+    return (
+      laboratorio.includes(termo) ||
+      lote.includes(termo) ||
+      validade.includes(termo)
+    );
+  });
 
   const handleRowClick = (produto: IEstoqueProduto) => {
     setProdutoSelecionado(produto);
 
-    if (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
-      EstoqueService.buscarLotesDoProdutoDosLaboratorios(produto.id, user.laboratoriosId).then((res) => {
+    const buscarLotes = async () => {
+      if (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
+        const res = await EstoqueService.buscarLotesDoProdutoDosLaboratorios(produto.id, user.laboratoriosId);
         setLotes(res.data);
-        setShowDialog(true);
-      });
-    } else if (user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
-      EstoqueService.buscarLotesPorProdutoEDepartamentos(produto.id, user.departamentosId).then((res) => {
+      } else if (user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
+        const res = await EstoqueService.buscarLotesPorProdutoEDepartamentos(produto.id, user.departamentosId);
         setLotes(res.data);
-        setShowDialog(true);
-      });
-    } else {
-      EstoqueService.buscarLotesDoProduto(produto.id).then((res) => {
+      } else {
+        const res = await EstoqueService.buscarLotesDoProduto(produto.id);
         setLotes(res.data);
-        setShowDialog(true);
-      });
-    }
+      }
+      setShowDialog(true);
+    };
+
+    buscarLotes();
   };
 
   const columns = [
@@ -101,61 +119,65 @@ export function EstoquePage() {
       </div>
 
       <Dialog
-          header={`${produtoSelecionado?.nome}`}
-          visible={showDialog}
-          onHide={() => setShowDialog(false)}
-          style={{ width: "100%", maxWidth: "850px" }}
-          modal
-          className="p-fluid"
-        >
-          {lotes.length === 0 ? (
-            <div className="text-center text-muted my-4">
-              Nenhum lote encontrado.
-            </div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle shadow-sm mt-3">
-                <thead className="table-dark text-center">
-                  <tr>
-                    <th scope="col">#</th>
-                    <th>Lote</th>
-                    <th>Validade</th>
-                    <th>Quantidade</th>
-                    <th>Laboratório</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lotes.map((lote, index) => {
-                    const validade = new Date(lote.validade);
-                    const vencido = validade < new Date();
-                    const diasRestantes = Math.floor(
-                      (validade.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-                    );
+        header={`${produtoSelecionado?.nome}`}
+        visible={showDialog}
+        onHide={() => {
+          setShowDialog(false);
+          setSearchDialog("");
+        }}
+        style={{ width: "100%", maxWidth: "850px" }}
+        modal
+        className="p-fluid"
+      >
+        <div className="mb-3">
+          <SearchBar
+            value={searchDialog}
+            onChange={(e) => setSearchDialog(e.target.value)}
+            placeholder="Buscar lote ou laboratório"
+          />
+        </div>
 
-                    return (
-                      <tr key={index} className={vencido ? "table-danger" : ""}>
-                        <th scope="row">{index + 1}</th>
-                        <td>
-                          <span className="fw-semibold text-uppercase">{lote.lote}</span>
-                        </td>
-                        <td>{validade.toLocaleDateString("pt-BR")}</td>
-                        <td>
-                          <span className="badge bg-success fs-6">
-                            {lote.quantidade} un.
-                          </span>
-                        </td>
-                        <td>
-                          <i className="pi pi-building text-secondary me-2" />
-                          {lote.laboratorio || lote.nomeLaboratorio}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Dialog>
+        {filteredLotes.length === 0 ? (
+          <div className="text-center text-muted my-4">
+            Nenhum lote encontrado.
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table table-bordered table-striped table-hover align-middle shadow-sm">
+              <thead className="table-dark text-center">
+                <tr>
+                  <th>Lote</th>
+                  <th>Validade</th>
+                  <th>Quantidade</th>
+                  <th>Laboratório</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLotes.map((lote, index) => {
+                  const validade = new Date(lote.dataValidade);
+                  const vencido = validade < new Date();
+
+                  return (
+                    <tr key={index} className={vencido ? "table-danger" : ""}>
+                      <td className="text-uppercase fw-semibold">{lote.lote}</td>
+                      <td>{validade.toLocaleDateString("pt-BR")}</td>
+                      <td>
+                        <span className="badge bg-success fs-6">
+                          {lote.quantidade} un.
+                        </span>
+                      </td>
+                      <td>
+                        <i className="pi pi-building text-secondary me-2" />
+                        {lote.laboratorio || lote.nomeLaboratorio}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

@@ -1,8 +1,6 @@
-import { IItemMovimentacao } from "./ItemMovimentacaoInterface";
-import { ILaboratorio } from "./LaboratorioInterface";
 import { INotaFiscal } from "./NotaFiscalInterface";
-import { IUser } from "./UserInterfaces";
-
+import { ILaboratorio } from "./LaboratorioInterface";
+import { IItemMovimentacao } from "./ItemMovimentacaoInterface";
 
 export interface IMovimentacaoAgrupada {
   idGrupo: string;
@@ -12,6 +10,10 @@ export interface IMovimentacaoAgrupada {
   laboratorioDestino?: ILaboratorio | null;
   laboratorioOrigem?: ILaboratorio | null;
   itens: IItemMovimentacao[];
-  usuario?: IUser;
+  usuario?: { id: number; name: string };
 }
 
+export type IUsuarioSimplificado = {
+  id: number;
+  name: string;
+};

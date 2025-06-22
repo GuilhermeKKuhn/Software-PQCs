@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from "primereact/toast";
-import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
 import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
@@ -13,13 +11,16 @@ import MovimentacaoService from "@/service/MovimentacaoService";
 
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { CabecalhoMovimentacaoForm } from "@/components/Common/CabecalhoMovimentacaoForm/CabecalhoMovimentacaoForm";
-import { ItensMovimentacaoForm } from "@/components/Common/ItensMovimentacaoForm/ItensMovimentacaoForm";
 import { ListaItensMovimentacao } from "@/components/Common/ListaItensMovimentacao/ListaItensMovimentacao";
 import { ConfirmarMovimentacao } from "@/components/Common/ConfirmaMovimentacao/ConfirmaMovimentacao";
+import { ItensMovimentacaoForm } from "@/components/Common/ItensMovimentacaoForm/ItensMovimentacaoForm";
+import { DialogAdicionarItemEntrada } from "@/components/Common/AdicionarItemEntrada/DialogAdicionarItemEntrada";
+import { DialogAdicionarItemTransferencia } from "@/components/Common/AdicionarItemTransferencia/DialogAdicionarItemTransferencia";
 
 import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
-import { LoteDisponivel } from "@/commons/ProdutoQuimicoInterface";
+import { IProdutoSimplificado, LoteDisponivel } from "@/commons/ProdutoQuimicoInterface";
+import { IFornecedor } from "@/commons/FornecedorInterface";
 
 export default function MovimentacoesFormPage() {
   const { id } = useParams();
@@ -44,46 +45,51 @@ export default function MovimentacoesFormPage() {
   const tipo = watch("tipo");
   const laboratorioOrigemId = watch("laboratorioOrigem.id");
 
-  const [produtos, setProdutos] = useState<{ id: number; nome: string }[]>([]);
-  const [laboratorios, setLaboratorios] = useState<{ id: number; nomeLaboratorio: string }[]>([]);
-  const [fornecedores, setFornecedores] = useState<{ id: number; razaoSocial: string }[]>([]);
+  const [produtos, setProdutos] = useState<IProdutoSimplificado[]>([]);
+  const [laboratorios, setLaboratorios] = useState<any[]>([]);
+  const [fornecedores, setFornecedores] = useState<IFornecedor[]>([]);
   const [itens, setItens] = useState<IItemMovimentacao[]>([]);
 
-  const [dialogAberto, setDialogAberto] = useState(false);
   const [lotesDisponiveis, setLotesDisponiveis] = useState<LoteDisponivel[]>([]);
-  const [indexSelecionado, setIndexSelecionado] = useState<number | null>(null);
+  const [produtoSelecionado, setProdutoSelecionado] = useState<IProdutoSimplificado | null>(null);
+  const [indexEditando, setIndexEditando] = useState<number | null>(null);
+
+  const [dialogEntradaAberto, setDialogEntradaAberto] = useState(false);
+  const [dialogTransferenciaAberto, setDialogTransferenciaAberto] = useState(false);
 
   const disableTipo = !isAdmin || !isNova;
 
-  useEffect(() => {
-    if (!id && user && user.tipoPerfil !== "ADMINISTRADOR") {
-      setValue("tipo", "SAIDA");
-    }
-  }, [user, id, setValue]);
-
+  // 🔥 Carregar dados iniciais
   useEffect(() => {
     ProdutoQuimicoService.listarProdutosQuimicos().then((res) => {
-      const produtosFormatados = res.data
-        .filter((p) => p.id !== undefined)
-        .map((p) => ({ id: p.id as number, nome: p.nome }));
+      const produtosFormatados = res.data.map((p: any) => ({
+        id: p.id,
+        nome: p.nome,
+        cas: p.cas,
+        densidade: p.densidade,
+        concentracao: p.concentracao,
+      }));
       setProdutos(produtosFormatados);
     });
 
-    FornecedorService.listarFornecedores().then((res) => setFornecedores(res.data));
+    FornecedorService.listarFornecedores().then((res) => {
+      setFornecedores(res.data); // ⚠️ Agora pega todos os dados do fornecedor
+    });
 
     LaboratorioService.listarLaboratorios().then((res) => {
       let labs = res.data;
 
       if (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO") {
-        labs = labs.filter((lab) => user.laboratoriosId.includes(lab.id));
+        labs = labs.filter((lab: any) => user.laboratoriosId.includes(lab.id));
       } else if (user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") {
-        labs = labs.filter((lab) => user.departamentosId.includes(lab.departamento.id));
+        labs = labs.filter((lab: any) => user.departamentosId.includes(lab.departamento.id));
       }
 
       setLaboratorios(labs);
     });
   }, [user]);
 
+  // 🔥 Carregar movimentação se for edição
   useEffect(() => {
     if (id) {
       MovimentacaoService.gerarMovimentacaoPreenchida(Number(id)).then((res) => {
@@ -98,18 +104,19 @@ export default function MovimentacoesFormPage() {
             fornecedor: { id: 0 },
           },
         });
-       setItens(
+        setItens(
           mov.itens.map((item: any) => ({
             ...item,
-            quantidadeSolicitada: item.quantidade, // só visual
-            quantidadeAprovada: item.quantidade,   // valor inicial editável
+            quantidadeSolicitada: item.quantidade,
+            quantidadeAprovada: item.quantidade,
           }))
         );
       });
     }
   }, [id, reset]);
 
-  const abrirDialogLote = (index: number, produtoId: number) => {
+  // 🔍 Buscar lotes disponíveis
+  const buscarLotesDisponiveis = (produtoId: number) => {
     if (!laboratorioOrigemId) {
       toast.current?.show({
         severity: "warn",
@@ -121,28 +128,19 @@ export default function MovimentacoesFormPage() {
 
     ProdutoQuimicoService.buscarLotesDisponiveis(produtoId, laboratorioOrigemId).then((res) => {
       setLotesDisponiveis(res.data);
-      setIndexSelecionado(index);
-      setDialogAberto(true);
     });
   };
 
-  const handleEditarQuantidade = (index: number, novaQtd: number) => {
-    const novosItens = [...itens];
-    novosItens[index].quantidadeAprovada = novaQtd;
-    setItens(novosItens);
-  };
-
-
-  const usarLote = (loteSelecionado: string) => {
-    if (indexSelecionado === null) return;
-    const novosItens = [...itens];
-    novosItens[indexSelecionado].lote = loteSelecionado;
-    setItens(novosItens);
-    setDialogAberto(false);
-  };
-
+  // ➕ Adicionar ou Editar item
   const handleAdicionarItem = (item: IItemMovimentacao) => {
-    setItens((prev) => [...prev, item]);
+    if (indexEditando !== null) {
+      const novos = [...itens];
+      novos[indexEditando] = item;
+      setItens(novos);
+      setIndexEditando(null);
+    } else {
+      setItens((prev) => [...prev, item]);
+    }
   };
 
   const handleRemoverItem = (index: number) => {
@@ -164,11 +162,12 @@ export default function MovimentacoesFormPage() {
   return (
     <div className="container">
       <Toast ref={toast} />
-      <PageHeader title="Nova Movimentação" />
+      <PageHeader title={isNova ? "Nova Movimentação" : "Editar Movimentação"} />
 
       <CabecalhoMovimentacaoForm
         control={control}
         watch={watch}
+        setValue={setValue}
         fornecedores={fornecedores}
         laboratorios={laboratorios}
         disableTipo={disableTipo}
@@ -179,51 +178,59 @@ export default function MovimentacoesFormPage() {
       <ItensMovimentacaoForm
         produtos={produtos}
         tipoMovimentacao={tipo}
-        laboratorioOrigemId={laboratorioOrigemId}
         onAdicionar={handleAdicionarItem}
-        itens={itens}
+        laboratorioOrigemId={laboratorioOrigemId}
+        buscarLotesDisponiveis={buscarLotesDisponiveis}
+        lotesDisponiveis={lotesDisponiveis}
       />
 
       <ListaItensMovimentacao
         itens={itens}
-        onRemove={handleRemoverItem}
-        onSelecionarLote={abrirDialogLote}
-        onEditarQuantidade={handleEditarQuantidade}
+        onEditar={(index, item) => {
+          setProdutoSelecionado({
+            id: item.produtoId,
+            nome: item.nomeProduto,
+            cas: item.cas || '',
+            densidade: item.densidade || '',
+            concentracao: item.concentracao || '',
+          });
+
+          setIndexEditando(index);
+
+          if (tipo === "ENTRADA") {
+            setDialogEntradaAberto(true);
+          } else if (tipo === "TRANSFERENCIA" || tipo === "SAIDA") {
+            buscarLotesDisponiveis(item.produtoId);
+            setDialogTransferenciaAberto(true);
+          }
+        }}
+        onRemover={(index) => handleRemoverItem(index)}
       />
 
+      {produtoSelecionado && (
+        <>
+          <DialogAdicionarItemEntrada
+            visible={dialogEntradaAberto}
+            onHide={() => {
+              setDialogEntradaAberto(false);
+              setIndexEditando(null);
+            }}
+            produto={produtoSelecionado}
+            onAdicionar={handleAdicionarItem}
+          />
 
-      <Dialog
-        header="Selecionar Lote"
-        visible={dialogAberto}
-        onHide={() => setDialogAberto(false)}
-        modal
-        style={{ width: "100%", maxWidth: "600px" }}
-        contentStyle={{ maxHeight: "70vh", overflowY: "auto" }}
-      >
-        {lotesDisponiveis.length === 0 ? (
-          <p className="text-muted">Nenhum lote disponível para este produto.</p>
-        ) : (
-          <div className="d-grid gap-3">
-            {lotesDisponiveis.map((loteDisp, index) => (
-              <div key={index} className="border rounded p-3 bg-light">
-                <div className="mb-2">
-                  <strong>Lote:</strong> {loteDisp.lote}<br />
-                  <strong>Validade:</strong> {new Date(loteDisp.validade).toLocaleDateString()}<br />
-                  <strong>Qtd:</strong> {loteDisp.quantidade}
-                </div>
-                <div className="text-end">
-                  <Button
-                    label="Usar"
-                    icon="pi pi-check"
-                    className="p-button-sm p-button-success"
-                    onClick={() => usarLote(loteDisp.lote)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Dialog>
+          <DialogAdicionarItemTransferencia
+            visible={dialogTransferenciaAberto}
+            onHide={() => {
+              setDialogTransferenciaAberto(false);
+              setIndexEditando(null);
+            }}
+            produto={produtoSelecionado}
+            lotes={lotesDisponiveis}
+            onAdicionar={handleAdicionarItem}
+          />
+        </>
+      )}
 
       <ConfirmarMovimentacao
         dadosCabecalho={getValues()}

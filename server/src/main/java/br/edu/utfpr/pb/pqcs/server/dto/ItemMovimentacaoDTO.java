@@ -1,5 +1,6 @@
 package br.edu.utfpr.pb.pqcs.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,7 +14,10 @@ public class ItemMovimentacaoDTO {
     private Double preco;
     private String lote;
     private Long idSolicitacaoItem;
-    private LocalDate dataFabricacao;
-    private LocalDate dataValidade;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fabricacao;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate validade;
+
 
 }

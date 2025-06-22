@@ -1,6 +1,7 @@
 package br.edu.utfpr.pb.pqcs.server.dto;
 
 import br.edu.utfpr.pb.pqcs.server.model.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,9 +14,7 @@ public class MovimentacaoDTO {
 
     private Long id;
     private String tipo;
-    private Double quantidade;
-    private String lote;
-    private LocalDate validade;
+
     private LocalDateTime dataMovimentacao;
 
     private NotaFiscalDTO notaFiscal;

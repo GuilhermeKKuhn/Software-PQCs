@@ -1,41 +1,45 @@
-import { Controller, UseFormWatch, Control } from "react-hook-form";
+import { Controller, UseFormWatch, Control, UseFormSetValue } from "react-hook-form";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
-import { useEffect } from "react";
+import { Button } from "primereact/button";
+import { useEffect, useState } from "react";
+
 import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
+import { IFornecedor } from "@/commons/FornecedorInterface";
+import { DialogSelecionarFornecedor } from "../SelecionarFornecedor/DialogSelecionarFornecedor";
 
-  interface Props {
-    control: Control<IMovimentacaoForm>;
-    watch: UseFormWatch<IMovimentacaoForm>;
-    fornecedores: { id: number; razaoSocial: string }[];
-    laboratorios: { id: number; nomeLaboratorio: string }[];
-    disableTipo?: boolean;
-    hideNotaFiscal?: boolean;
-    hideDestino?: boolean;
-  }
 
-  export function CabecalhoMovimentacaoForm({
-    control,
-    watch,
-    fornecedores,
-    laboratorios,
-    disableTipo = false,
-    hideNotaFiscal = false,
-    hideDestino = false,
-  }: Props) {
-    const tipo = watch("tipo");
+interface Props {
+  control: Control<IMovimentacaoForm>;
+  watch: UseFormWatch<IMovimentacaoForm>;
+  fornecedores: IFornecedor[];
+  laboratorios: { id: number; nomeLaboratorio: string }[];
+  disableTipo?: boolean;
+  hideNotaFiscal?: boolean;
+  hideDestino?: boolean;
+  setValue: UseFormSetValue<IMovimentacaoForm>;
+}
+
+export function CabecalhoMovimentacaoForm({
+  control,
+  watch,
+  fornecedores,
+  laboratorios,
+  disableTipo = false,
+  hideNotaFiscal = false,
+  hideDestino = false,
+  setValue,
+}: Props) {
+  const tipo = watch("tipo");
+  const fornecedorId = watch("notaFiscal.fornecedor.id");
+  const fornecedorSelecionado = fornecedores.find((f) => f.id === fornecedorId) ?? null;
+
+  const [dialogFornecedorAberto, setDialogFornecedorAberto] = useState(false);
 
   useEffect(() => {
-    console.log("Tipo de movimentação atual:", tipo, " | Edição habilitada:", !disableTipo);
-  }, [tipo, disableTipo]);
-
-  const formatarDateLocal = (data: Date | null) => {
-    if (!data) return null;
-    const tzOffset = data.getTimezoneOffset() * 60000; // em milissegundos
-    const localISOTime = new Date(data.getTime() - tzOffset).toISOString();
-    return localISOTime.split("T")[0]; // só a data
-  };
+    console.log("Tipo de movimentação:", tipo);
+  }, [tipo]);
 
   return (
     <div className="container border rounded bg-white p-4">
@@ -96,33 +100,48 @@ import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
                 )}
               />
             </div>
-
             <div className="col-md-6">
               <label className="form-label">Fornecedor</label>
-              <Controller
-                name="notaFiscal.fornecedor.id"
-                control={control}
-                render={({ field }) => (
-                  <Dropdown
-                    {...field}
-                    options={fornecedores.map((f) => ({
-                      label: f.razaoSocial,
-                      value: f.id,
-                    }))}
-                    placeholder="Selecione o fornecedor"
-                    className="w-100"
+              <div className="input-group">
+                <InputText
+                  value={fornecedorSelecionado?.razaoSocial || ""}
+                  placeholder="Nenhum fornecedor selecionado"
+                  disabled
+                  className="form-control"
+                />
+                <Button
+                  icon="pi pi-search"
+                  className="p-button-secondary"
+                  onClick={() => setDialogFornecedorAberto(true)}
+                  tooltip="Selecionar Fornecedor"
+                />
+                {fornecedorSelecionado && (
+                  <Button
+                    icon="pi pi-times"
+                    className="p-button-danger p-button-outlined"
+                    onClick={() => setValue("notaFiscal.fornecedor.id", undefined)}
+                    tooltip="Limpar Seleção"
                   />
                 )}
-              />
+              </div>
             </div>
+            <DialogSelecionarFornecedor
+              visible={dialogFornecedorAberto}
+              onHide={() => setDialogFornecedorAberto(false)}
+              fornecedores={fornecedores}
+              onSelect={(fornecedor) => {
+                setValue('notaFiscal.fornecedor.id', fornecedor.id);
+                setDialogFornecedorAberto(false);
+              }}
+            />
           </>
         )}
 
-        {((tipo === "ENTRADA" || tipo === "TRANSFERENCIA") && !hideDestino) && (
+        {(tipo === "TRANSFERENCIA" || tipo === "SAIDA") && (
           <div className="col-md-6">
-            <label className="form-label">Laboratório de Destino</label>
+            <label className="form-label">Laboratório de Origem</label>
             <Controller
-              name="laboratorioDestino.id"
+              name="laboratorioOrigem.id"
               control={control}
               render={({ field }) => (
                 <Dropdown
@@ -139,11 +158,11 @@ import { IMovimentacaoForm } from "@/commons/MovimentacoesInterface";
           </div>
         )}
 
-        {(tipo === "TRANSFERENCIA" || tipo === "SAIDA") && (
+        {((tipo === "ENTRADA" || tipo === "TRANSFERENCIA") && !hideDestino) && (
           <div className="col-md-6">
-            <label className="form-label">Laboratório de Origem</label>
+            <label className="form-label">Laboratório de Destino</label>
             <Controller
-              name="laboratorioOrigem.id"
+              name="laboratorioDestino.id"
               control={control}
               render={({ field }) => (
                 <Dropdown

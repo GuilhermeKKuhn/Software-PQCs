@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
+import { Dialog } from "primereact/dialog";
+
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
 import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
-import { Dialog } from "primereact/dialog";
+
 import { INotaFiscal, IItemNota } from "@/commons/NotaFiscalInterface";
 import NotaFiscalService from "@/service/NotaFiscalService";
-
-
 
 export function NotaFiscalPage() {
   const [notas, setNotas] = useState<INotaFiscal[]>([]);
@@ -21,8 +21,8 @@ export function NotaFiscalPage() {
   }, []);
 
   const filteredNotas = notas.filter(n =>
-    n.numeroNotaFiscal.toString().includes(search.toLowerCase())
-    || n.fornecedor?.razaoSocial?.toLowerCase().includes(search.toLowerCase())
+    n.numeroNotaFiscal.toString().includes(search.toLowerCase()) ||
+    n.fornecedor?.razaoSocial?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleRowClick = (nota: INotaFiscal) => {
@@ -33,9 +33,11 @@ export function NotaFiscalPage() {
     });
   };
 
-  function parseLocalDate(dateStr: string): Date {
+  function parseLocalDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return "-";
     const [year, month, day] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("pt-BR");
   }
 
   const columns = [
@@ -43,10 +45,9 @@ export function NotaFiscalPage() {
     {
       field: "dataRecebimento",
       header: "Data",
-      body: (row: INotaFiscal) =>
-        parseLocalDate(row.dataRecebimento).toLocaleDateString("pt-BR")
+      body: (row: INotaFiscal) => parseLocalDate(row.dataRecebimento)
     },
-    { field: "fornecedor.razaoSocial", header: "Fornecedor" },
+    { field: "fornecedor.razaoSocial", header: "Fornecedor" }
   ];
 
   return (
@@ -72,25 +73,30 @@ export function NotaFiscalPage() {
       </div>
 
       <Dialog
-        header={`Nota Fiscal ${notaSelecionada?.numeroNotaFiscal}`}
+        header={`Nota Fiscal Nº ${notaSelecionada?.numeroNotaFiscal}`}
         visible={showDialog}
         onHide={() => setShowDialog(false)}
-        style={{ width: "100%", maxWidth: "700px" }}
+        style={{ width: "100%", maxWidth: "800px" }}
         modal
       >
         {notaSelecionada && (
           <div className="container-fluid">
             <div className="row gy-3 mb-3">
-              <div className="col-12">
                 <small className="text-muted">Data de Recebimento</small>
                 <div className="fw-bold">
-                  {parseLocalDate(notaSelecionada.dataRecebimento).toLocaleDateString("pt-BR")}
+                  {parseLocalDate(notaSelecionada.dataRecebimento)}
                 </div>
-              </div>
-
-              <div className="col-12">
-                <small className="text-muted">Fornecedor</small>
-                <div className="fw-bold">{notaSelecionada.fornecedor.razaoSocial}</div>
+                <div className="border rounded p-3 bg-light">
+                  <div className="fw-bold mb-2">{notaSelecionada.fornecedor.razaoSocial}</div>
+                  <div className="small text-muted d-flex flex-column gap-1">
+                    <div><strong>CNPJ:</strong> {notaSelecionada.fornecedor.cnpj}</div>
+                    <div><strong>Endereço:</strong> {notaSelecionada.fornecedor.endereco ?? "-"}, Nº {notaSelecionada.fornecedor.numero ?? "-"}</div>
+                    <div><strong>Cidade:</strong> {notaSelecionada.fornecedor.cidade ?? "-"}</div>
+                    <div><strong>Estado:</strong> {notaSelecionada.fornecedor.estado ?? "-"}</div>
+                    <div><strong>Telefone:</strong> {notaSelecionada.fornecedor.telefone ?? "-"}</div>
+                    <div><strong>Email:</strong> {notaSelecionada.fornecedor.email ?? "-"}</div>
+                  
+                  </div>
               </div>
             </div>
 
@@ -101,8 +107,19 @@ export function NotaFiscalPage() {
                   <div className="p-3 border rounded bg-light">
                     <div className="fw-bold">{item.nomeProduto}</div>
                     <div className="text-muted small mt-2">
-                      <div>Lote: <strong>{item.lote}</strong></div>
-                      <div>Quantidade: <strong>{item.quantidade}</strong></div>
+                      <div><strong>Lote:</strong> {item.lote}</div>
+                      <div><strong>Quantidade:</strong> {item.quantidade}</div>
+                      <div>
+                        <strong>Fabricação:</strong> {parseLocalDate(item.fabricacao)}
+                      </div>
+                      <div>
+                        <strong>Validade:</strong>{" "}
+                        <span style={{
+                          color: item.validade && new Date(item.validade) < new Date() ? "red" : "inherit"
+                        }}>
+                          {parseLocalDate(item.validade)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -10,7 +10,7 @@ export interface IProdutoQuimico {
   estadoFisico: string;
   concentracao: string;
   densidade: string;
-  orgaos: OrgaoControlador[]; // Agora é array
+  orgaos: OrgaoControlador[];
   unidadeMedida: {
     id: number;
     nome?: string;
@@ -19,9 +19,24 @@ export interface IProdutoQuimico {
 }
 
 
-export interface LoteDisponivel  {
+export interface LoteDisponivel {
   lote: string;
   quantidade: number;
-  validade: string;
+  dataFabricacao: string;
+  dataValidade: string;
   laboratorioId: number;
-};
+  nomeLaboratorio: string;
+  cas: string;
+  densidade: string;
+  concentracao: string;
+}
+
+
+
+export interface IProdutoSimplificado {
+  id: number;
+  nome: string;
+  cas: string;
+  densidade: string;
+  concentracao: string;
+}

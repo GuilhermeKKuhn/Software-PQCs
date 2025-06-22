@@ -8,7 +8,7 @@ export interface IFornecedor {
   estado: string;
   telefone: string;
   email: string;
-  dataValidadeLicenca: Date | null;
+  dataValidadeLicenca: Date | string | null;
 }
 
 export type FornecedorPayload = Omit<IFornecedor, 'dataValidadeLicenca'> & {

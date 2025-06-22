@@ -146,11 +146,11 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             }
 
             if (tipo == TipoMovimentacao.ENTRADA && notaFiscal != null) {
-                if (item.getDataValidade() == null || item.getDataFabricacao() == null) {
+                if (item.getValidade() == null || item.getFabricacao() == null) {
                     throw new RuntimeException("Data de fabricação e validade devem ser informadas na entrada.");
                 }
-                validade = item.getDataValidade();
-                fabricacao = item.getDataFabricacao();
+                validade = item.getValidade();
+                fabricacao = item.getFabricacao();
             }
 
             if (tipo == TipoMovimentacao.ENTRADA) {
@@ -199,7 +199,6 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
     private void criarItemNotaFiscal(NotaFiscal nf, ProdutoQuimico produto, ItemMovimentacaoDTO item) {
         ItensNotaFiscal inf = new ItensNotaFiscal();
         inf.setQuantidade(item.getQuantidade().floatValue());
-        inf.setPreco(item.getPreco() != null ? item.getPreco().floatValue() : 0f);
         inf.setData(nf.getDataRecebimento());
         inf.setLote(item.getLote());
         inf.setProdutoQuimico(produto);
@@ -219,7 +218,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         m.setNotaFiscal(nf);
         m.setUsuario(authService.getUsuarioLogado());
         m.setValidade(validade);
-        m.setDataFabricacao(fabricacao);
+        m.setFabricacao(fabricacao);
         return m;
     }
 
@@ -260,7 +259,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
                     novo.setLote(mov.getLote());
                     novo.setQuantidade(0.0F);
                     novo.setNotaFiscal(mov.getNotaFiscal());
-                    novo.setDataFabricacao(mov.getDataFabricacao());
+                    novo.setDataFabricacao(mov.getFabricacao());
                     novo.setDataValidade(mov.getValidade());
                     return novo;
                 });
@@ -302,9 +301,6 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         MovimentacaoDTO dto = new MovimentacaoDTO();
         dto.setId(m.getId());
         dto.setTipo(m.getTipoMovimentacao().name());
-        dto.setQuantidade(m.getQuantidade());
-        dto.setLote(m.getLote());
-        dto.setValidade(m.getValidade());
         dto.setDataMovimentacao(m.getDataMovimentacao());
 
         // Nota Fiscal

@@ -24,10 +24,7 @@ public class ItensNotaFiscal {
     private Float quantidade;
 
     @NotNull
-    private Float preco;
-
-    @NotNull
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate data;
 
     @NotNull
