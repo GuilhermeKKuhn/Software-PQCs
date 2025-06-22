@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -49,8 +50,16 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         if (dto.getTipo() == null) {
             throw new RuntimeException("Tipo da movimentação deve ser informado.");
         }
+
         TipoMovimentacao tipo = TipoMovimentacao.valueOf(dto.getTipo());
         User user = authService.getUsuarioLogado();
+        MotivoSaida motivo = null;
+        if (tipo == TipoMovimentacao.SAIDA) {
+            if (dto.getMotivoSaida() == null) {
+                throw new RuntimeException("Motivo da saída é obrigatório.");
+            }
+            motivo = MotivoSaida.valueOf(dto.getMotivoSaida());
+        }
         if (!user.getTipoPerfil().equals(TipoPerfil.ADMINISTRADOR) && tipo != TipoMovimentacao.SAIDA) {
             throw new RuntimeException("Você só pode realizar movimentações do tipo SAÍDA.");
         }
@@ -82,7 +91,8 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         Laboratorio origem = buscarLaboratorio(dto.getLaboratorioOrigem());
         Laboratorio destino = buscarLaboratorio(dto.getLaboratorioDestino());
 
-        return criarMovimentacoes(dto.getItens(), tipo, origem, destino, notaFiscal);
+        return criarMovimentacoes(dto.getItens(), tipo, origem, destino, notaFiscal, motivo);
+
     }
 
 
@@ -125,7 +135,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
                 : null;
     }
 
-    private List<MovimentacaoDTO> criarMovimentacoes(List<ItemMovimentacaoDTO> itens, TipoMovimentacao tipo, Laboratorio origem, Laboratorio destino, NotaFiscal notaFiscal) {
+    private List<MovimentacaoDTO> criarMovimentacoes(List<ItemMovimentacaoDTO> itens, TipoMovimentacao tipo, Laboratorio origem, Laboratorio destino, NotaFiscal notaFiscal, MotivoSaida motivoSaida) {
         List<MovimentacaoDTO> result = new ArrayList<>();
 
         for (ItemMovimentacaoDTO item : itens) {
@@ -156,8 +166,9 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             if (tipo == TipoMovimentacao.ENTRADA) {
                 criarItemNotaFiscal(notaFiscal, produto, item);
             }
-
-            Movimentacao movimentacao = criarMovimentacao(item, produto, origem, destino, notaFiscal, validade, fabricacao, tipo);
+            Movimentacao movimentacao = criarMovimentacao(
+                    item, produto, origem, destino, notaFiscal, validade, fabricacao, tipo, motivoSaida
+            );
             atualizarEstoque(movimentacao);
 
             movimentacaoRepository.save(movimentacao);
@@ -167,7 +178,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         return result;
     }
 
-    public void realizarMovimentacoesPorSolicitacao(Long laboratorioOrigemId, Laboratorio destino, ItemSolicitacao item) {
+    /*public void realizarMovimentacoesPorSolicitacao(Long laboratorioOrigemId, Laboratorio destino, ItemSolicitacao item) {
         if (item.getLoteSelecionado() == null || item.getQuantidadeAprovada() == null || item.getQuantidadeAprovada() <= 0) {
             throw new RuntimeException("Lote e quantidade válida devem estar definidos para aprovar item.");
         }
@@ -192,7 +203,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         dto.setItens(List.of(itemMov));
 
         realizarMovimentacoes(dto);
-    }
+    }*/
 
 
 
@@ -206,7 +217,7 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         itensNotaFiscalRepository.save(inf);
     }
 
-    private Movimentacao criarMovimentacao(ItemMovimentacaoDTO item, ProdutoQuimico produto, Laboratorio origem, Laboratorio destino, NotaFiscal nf, LocalDate validade, LocalDate fabricacao, TipoMovimentacao tipo) {
+    private Movimentacao criarMovimentacao(ItemMovimentacaoDTO item, ProdutoQuimico produto, Laboratorio origem, Laboratorio destino, NotaFiscal nf, LocalDate validade, LocalDate fabricacao, TipoMovimentacao tipo, MotivoSaida motivo) {
         Movimentacao m = new Movimentacao();
         m.setProduto(produto);
         m.setLaboratorioOrigem(origem);
@@ -219,6 +230,8 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         m.setUsuario(authService.getUsuarioLogado());
         m.setValidade(validade);
         m.setFabricacao(fabricacao);
+        m.setMotivoSaida(motivo);
+
         return m;
     }
 
@@ -283,12 +296,50 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
         estoqueRepository.save(estoque);
     }
 
+
     public List<MovimentacaoDTO> listar() {
-        List<Movimentacao> movimentacoes = movimentacaoRepository.findAll();
-        return movimentacoes.stream()
-                .map(this::toDTO)
-                .toList();
+        User user = authService.getUsuarioLogado();
+
+        if (user.getTipoPerfil() == TipoPerfil.ADMINISTRADOR) {
+            return movimentacaoRepository.findAll()
+                    .stream()
+                    .map(this::toDTO)
+                    .toList();
+        }
+
+        if (user.getTipoPerfil() == TipoPerfil.RESPONSAVEL_LABORATORIO) {
+            List<Long> labsIds = laboratorioRepository.findAllByResponsavelId(user.getId())
+                    .stream()
+                    .map(Laboratorio::getId)
+                    .toList();
+
+            List<Movimentacao> movimentacoes = movimentacaoRepository
+                    .findAllByLaboratorioOrigem_IdInOrLaboratorioDestino_IdIn(labsIds, labsIds);
+
+            return movimentacoes.stream().map(this::toDTO).toList();
+        }
+
+        if (user.getTipoPerfil() == TipoPerfil.RESPONSAVEL_DEPARTAMENTO) {
+            List<Long> departamentosIds = departamentoRepository.findAllByResponsavelId(user.getId())
+                    .stream()
+                    .map(dep -> dep.getId())
+                    .toList();
+
+            List<Long> labsIds = laboratorioRepository.findAllByDepartamento_IdIn(departamentosIds)
+                    .stream()
+                    .map(Laboratorio::getId)
+                    .toList();
+
+            List<Movimentacao> movimentacoes = movimentacaoRepository
+                    .findAllByLaboratorioOrigem_IdInOrLaboratorioDestino_IdIn(labsIds, labsIds);
+
+            return movimentacoes.stream().map(this::toDTO).toList();
+        }
+
+        return Collections.emptyList();
     }
+
+
 
 
     public MovimentacaoDTO buscarPorId(Long id) {
@@ -361,6 +412,9 @@ public class MovimentacaoServiceImpl extends CrudServiceImpl<Movimentacao, Long>
             uDTO.setId(m.getUsuario().getId());
             uDTO.setName(m.getUsuario().getName());
             dto.setUsuario(uDTO);
+        }
+        if (m.getMotivoSaida() != null) {
+            dto.setMotivoSaida(m.getMotivoSaida().name());
         }
 
         ItemMovimentacaoDTO itemDTO = new ItemMovimentacaoDTO();

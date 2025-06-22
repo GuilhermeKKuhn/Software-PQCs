@@ -37,7 +37,7 @@ export function DialogAdicionarItemEntrada({
   };
 
   const formatDateToLocalDate = (date: Date) => {
-    return date.toISOString().split('T')[0]; // Exemplo: "2025-06-21"
+    return date.toISOString().split('T')[0]; 
   };
 
   const handleAdicionar = () => {

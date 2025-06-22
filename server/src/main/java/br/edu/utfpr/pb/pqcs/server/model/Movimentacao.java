@@ -42,6 +42,10 @@ public class Movimentacao {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate Validade;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "motivo_saida")
+    private MotivoSaida motivoSaida;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "notaFiscal_id", referencedColumnName = "id")

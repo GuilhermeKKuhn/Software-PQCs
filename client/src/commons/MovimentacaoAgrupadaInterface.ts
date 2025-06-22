@@ -5,6 +5,7 @@ import { IItemMovimentacao } from "./ItemMovimentacaoInterface";
 export interface IMovimentacaoAgrupada {
   idGrupo: string;
   tipo: string;
+  motivoSaida?: string | null; 
   data: string;
   notaFiscal?: INotaFiscal;
   laboratorioDestino?: ILaboratorio | null;

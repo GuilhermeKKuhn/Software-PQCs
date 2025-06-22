@@ -49,50 +49,85 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
-        e.produto.id, e.produto.nome, SUM(e.quantidade))
+        e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao, SUM(e.quantidade))
     FROM Estoque e
-    GROUP BY e.produto.id, e.produto.nome""")
+    GROUP BY e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao""")
     List<EstoqueProdutoDTO> listarResumoPorProduto();
+
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueLoteDTO(
-        e.lote, e.dataFabricacao, e.dataValidade, CAST(e.quantidade AS double), e.laboratorio.nomeLaboratorio)
+        e.lote,
+        TO_CHAR(e.dataFabricacao, 'YYYY-MM-DD'),
+        TO_CHAR(e.dataValidade, 'YYYY-MM-DD'),
+        CAST(e.quantidade AS double),
+        e.laboratorio.nomeLaboratorio,
+        e.laboratorio.nomeLaboratorio,
+        e.produto.cas,
+        e.produto.densidade,
+        e.produto.concentracao
+    )
     FROM Estoque e
     WHERE e.produto.id = :produtoId AND e.quantidade > 0
     ORDER BY e.dataValidade ASC""")
     List<EstoqueLoteDTO> listarLotesPorProduto(@Param("produtoId") Long produtoId);
 
+
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
-        e.produto.id, e.produto.nome, SUM(e.quantidade))
+        e.produto.id,
+        e.produto.nome,
+        e.produto.cas,
+        e.produto.densidade,
+        e.produto.concentracao,
+        SUM(e.quantidade))
     FROM Estoque e
     WHERE e.laboratorio.id = :laboratorioId
-    GROUP BY e.produto.id, e.produto.nome""")
+    GROUP BY e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao""")
     List<EstoqueProdutoDTO> listarResumoPorProdutoELaboratorio(@Param("laboratorioId") Long laboratorioId);
 
+
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
-        e.produto.id, e.produto.nome, SUM(e.quantidade))
+        e.produto.id,
+        e.produto.nome,
+        e.produto.cas,
+        e.produto.densidade,
+        e.produto.concentracao,
+        SUM(e.quantidade))
     FROM Estoque e
     WHERE e.laboratorio.departamento.id = :departamentoId
-    GROUP BY e.produto.id, e.produto.nome""")
+    GROUP BY e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao""")
     List<EstoqueProdutoDTO> listarResumoPorProdutoEDepartamento(@Param("departamentoId") Long departamentoId);
 
-    @Query("""
-    SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
-        e.produto.id, e.produto.nome, SUM(e.quantidade))
-    FROM Estoque e
-    WHERE e.laboratorio IN :laboratorios
-    GROUP BY e.produto.id, e.produto.nome""")
-    List<EstoqueProdutoDTO> listarResumoPorProdutosDosLaboratorios(@Param("laboratorios") List<Laboratorio> laboratorios);
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
-        e.produto.id, e.produto.nome, SUM(e.quantidade))
+        e.produto.id,
+        e.produto.nome,
+        e.produto.cas,
+        e.produto.densidade,
+        e.produto.concentracao,
+        SUM(e.quantidade))
+    FROM Estoque e
+    WHERE e.laboratorio IN :laboratorios
+    GROUP BY e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao""")
+    List<EstoqueProdutoDTO> listarResumoPorProdutosDosLaboratorios(@Param("laboratorios") List<Laboratorio> laboratorios);
+
+
+    @Query("""
+    SELECT new br.edu.utfpr.pb.pqcs.server.dto.EstoqueProdutoDTO(
+        e.produto.id,
+        e.produto.nome,
+        e.produto.cas,
+        e.produto.densidade,
+        e.produto.concentracao,
+        SUM(e.quantidade))
     FROM Estoque e
     WHERE e.laboratorio.departamento IN :departamentos
-    GROUP BY e.produto.id, e.produto.nome""")
+    GROUP BY e.produto.id, e.produto.nome, e.produto.cas, e.produto.densidade, e.produto.concentracao""")
     List<EstoqueProdutoDTO> listarResumoPorProdutosDosDepartamentos(@Param("departamentos") List<Departamento> departamentos);
+
 
     @Query("""
     SELECT new br.edu.utfpr.pb.pqcs.server.dto.LoteDisponivelDTO(

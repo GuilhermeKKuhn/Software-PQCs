@@ -105,6 +105,27 @@ public class RelatorioController {
                 .body(new InputStreamResource(stream));
     }
 
+    @GetMapping("/movimentacoes-personalizado")
+    public ResponseEntity<byte[]> gerarRelatorioPersonalizado(
+            @RequestParam String dataInicio,
+            @RequestParam String dataFim,
+            @RequestParam String tipos) throws IOException {
+
+        List<String> listaTipos = List.of(tipos.split(","));
+
+        byte[] relatorio = relatorioService.gerarRelatorioMovimentacoesPersonalizado(
+                LocalDate.parse(dataInicio),
+                LocalDate.parse(dataFim),
+                listaTipos
+        );
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=relatorio_movimentacoes.xlsx")
+                .body(relatorio);
+    }
+
+
+
 
 
 

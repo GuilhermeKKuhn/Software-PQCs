@@ -11,5 +11,5 @@ public interface LaboratorioRepository extends JpaRepository<Laboratorio, Long> 
 
     List<Laboratorio> findAllByResponsavelId(Long userId);
 
-
+    List<Laboratorio> findAllByDepartamento_IdIn(List<Long> departamentosIds);
 }

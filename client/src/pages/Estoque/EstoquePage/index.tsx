@@ -42,6 +42,9 @@ export function EstoquePage() {
     const termo = search.toLowerCase();
     return (
       p.nome.toLowerCase().includes(termo) ||
+      (p.cas?.toLowerCase() ?? "").includes(termo) ||
+      (p.densidade?.toLowerCase() ?? "").includes(termo) ||
+      (p.concentracao?.toLowerCase() ?? "").includes(termo) ||
       String(p.quantidadeTotal).includes(termo)
     );
   });
@@ -81,6 +84,9 @@ export function EstoquePage() {
 
   const columns = [
     { field: "nome", header: "Produto" },
+    { field: "cas", header: "CAS" },
+    { field: "densidade", header: "Densidade" },
+    { field: "concentracao", header: "Concentração" },
     {
       field: "quantidadeTotal",
       header: "Quantidade Total",
@@ -97,7 +103,7 @@ export function EstoquePage() {
           <SearchBar
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar produto"
+            placeholder="Buscar produto, CAS, densidade..."
           />
         }
         right={
@@ -119,7 +125,14 @@ export function EstoquePage() {
       </div>
 
       <Dialog
-        header={`${produtoSelecionado?.nome}`}
+        header={
+          <div>
+            <div><strong>{produtoSelecionado?.nome}</strong></div>
+            <div className="small text-muted">
+              CAS: {produtoSelecionado?.cas ?? "-"} | Densidade: {produtoSelecionado?.densidade ?? "-"} | Concentração: {produtoSelecionado?.concentracao ?? "-"}
+            </div>
+          </div>
+        }
         visible={showDialog}
         onHide={() => {
           setShowDialog(false);

@@ -6,6 +6,7 @@ import { IMovimentacaoAgrupada } from "@/commons/MovimentacaoAgrupadaInterface";
 import { IItemMovimentacao } from "@/commons/ItemMovimentacaoInterface";
 
 import MovimentacaoService from "@/service/MovimentacaoService";
+import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
 
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
@@ -15,9 +16,12 @@ import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
 import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
 import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 
+import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
+import { IProdutoSimplificado } from "@/commons/ProdutoQuimicoInterface";
 
 export function MovimentacaoPage() {
   const navigate = useNavigate();
+  const user = useAuthUser();
 
   const [search, setSearch] = useState("");
   const [movimentacaoSelecionada, setMovimentacaoSelecionada] =
@@ -26,17 +30,24 @@ export function MovimentacaoPage() {
   const [movimentacoesAgrupadas, setMovimentacoesAgrupadas] = useState<
     IMovimentacaoAgrupada[]
   >([]);
+  const [produtos, setProdutos] = useState<IProdutoSimplificado[]>([]);
 
   const filteredMovimentacoes = movimentacoesAgrupadas.filter((mov) => {
     const termo = search.toLowerCase();
     return (
       mov.tipo?.toLowerCase().includes(termo) ||
       mov.itens?.some((item) => item.lote?.toLowerCase().includes(termo)) ||
-      String(mov.notaFiscal?.numeroNotaFiscal ?? "").includes(termo)
+      String(mov.notaFiscal?.numeroNotaFiscal ?? "").includes(termo) ||
+      mov.laboratorioDestino?.nomeLaboratorio?.toLowerCase().includes(termo) ||
+      mov.laboratorioOrigem?.nomeLaboratorio?.toLowerCase().includes(termo)
     );
   });
 
   useEffect(() => {
+    ProdutoQuimicoService.listarProdutosQuimicos().then((res) => {
+      setProdutos(res.data);
+    });
+
     MovimentacaoService.listarMovimentacoes().then((res) => {
       const dados: IMovimentacao[] = res.data;
 
@@ -53,14 +64,17 @@ export function MovimentacaoPage() {
           agrupadasMap.set(key, {
             idGrupo: key,
             tipo: mov.tipo,
-            data: mov.dataMovimentacao ?? mov.notaFiscal?.dataRecebimento ?? "",
+            motivoSaida: mov.motivoSaida ?? null,
+            data:
+              mov.dataMovimentacao ?? mov.notaFiscal?.dataRecebimento ?? "",
             notaFiscal: mov.notaFiscal,
             laboratorioDestino: mov.laboratorioDestino,
             laboratorioOrigem: mov.laboratorioOrigem,
             usuario: mov.usuario
               ? {
                   id: mov.usuario.id,
-                  name: mov.usuario.name ?? mov.usuario.nome ?? "Desconhecido",
+                  name:
+                    mov.usuario.name ?? mov.usuario.nome ?? "Desconhecido",
                 }
               : undefined,
             itens: [],
@@ -68,9 +82,13 @@ export function MovimentacaoPage() {
         }
 
         mov.itens.forEach((itemMov) => {
+          const produtoInfo = produtos.find(
+            (p) => p.id === itemMov.produtoId
+          );
+
           const item: IItemMovimentacao = {
             produtoId: itemMov.produtoId,
-            nomeProduto: itemMov.nomeProduto ?? "Desconhecido",
+            nomeProduto: itemMov.nomeProduto ?? produtoInfo?.nome ?? "Desconhecido",
             lote: itemMov.lote ?? mov.lote ?? "-",
             preco: itemMov.preco ?? null,
 
@@ -91,9 +109,9 @@ export function MovimentacaoPage() {
             fabricacao: itemMov.fabricacao ?? null,
             validade: itemMov.validade ?? null,
 
-            cas: itemMov.cas ?? '',
-            densidade: itemMov.densidade ?? '',
-            concentracao: itemMov.concentracao ?? '',
+            cas: produtoInfo?.cas ?? "-",
+            densidade: produtoInfo?.densidade ?? "-",
+            concentracao: produtoInfo?.concentracao ?? "-",
 
             idSolicitacaoItem: itemMov.idSolicitacaoItem ?? undefined,
           };
@@ -105,7 +123,7 @@ export function MovimentacaoPage() {
       const agrupadas = Array.from(agrupadasMap.values());
       setMovimentacoesAgrupadas(agrupadas);
     });
-  }, []);
+  }, [user]);
 
   const columns = [
     { field: "tipo", header: "Tipo" },
@@ -125,7 +143,9 @@ export function MovimentacaoPage() {
       field: "laboratorioDestino.nomeLaboratorio",
       header: "Destino",
       body: (row: IMovimentacaoAgrupada) =>
-        row.laboratorioDestino?.nomeLaboratorio ?? "-",
+        row.tipo === "SAIDA"
+          ? "Consumo"
+          : row.laboratorioDestino?.nomeLaboratorio ?? "-",
     },
     {
       field: "usuario.name",
@@ -180,6 +200,16 @@ export function MovimentacaoPage() {
           campos={[
             { label: "Tipo", field: "tipo" },
             {
+              label: "Motivo da Saída",
+              field: "motivoSaida",
+              body: (data) =>
+                data.tipo === "SAIDA"
+                  ? data.motivoSaida
+                    ? data.motivoSaida.replaceAll("_", " ")
+                    : "-"
+                  : "-",
+            },
+            {
               label: "Data",
               field: "data",
               body: (data) =>
@@ -190,6 +220,8 @@ export function MovimentacaoPage() {
             {
               label: "Nota Fiscal",
               field: "notaFiscal.numeroNotaFiscal",
+              body: (data) =>
+                data.notaFiscal?.numeroNotaFiscal ?? "Sem Nota",
             },
             {
               label: "Fornecedor",
@@ -207,7 +239,9 @@ export function MovimentacaoPage() {
               label: "Destino",
               field: "laboratorioDestino.nomeLaboratorio",
               body: (data) =>
-                data.laboratorioDestino?.nomeLaboratorio ?? "-",
+                data.tipo === "SAIDA"
+                  ? "Consumo"
+                  : data.laboratorioDestino?.nomeLaboratorio ?? "-",
             },
             {
               label: "Itens",
@@ -219,14 +253,28 @@ export function MovimentacaoPage() {
                       key={index}
                       className="mb-2 p-2 border rounded bg-light shadow-sm"
                     >
-                      <strong>{item.nomeProduto}</strong>
+                      <div>
+                        <strong>{item.nomeProduto}</strong>
+                      </div>
                       <div className="small text-muted">
-                        <span className="me-3">
-                          Lote: <strong>{item.lote}</strong>
-                        </span>
-                        <span className="me-3">
-                          Qtd: <strong>{item.quantidadeAprovada}</strong>
-                        </span>
+                        <div>
+                          <span className="me-3">
+                            Lote: <strong>{item.lote}</strong>
+                          </span>
+                          <span className="me-3">
+                            Qtd: <strong>{item.quantidadeAprovada}</strong>
+                          </span>
+                          <span className="me-3">
+                            CAS: <strong>{item.cas}</strong>
+                          </span>
+                          <span className="me-3">
+                            Densidade: <strong>{item.densidade}</strong>
+                          </span>
+                          <span className="me-3">
+                            Concentração:{" "}
+                            <strong>{item.concentracao}</strong>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}

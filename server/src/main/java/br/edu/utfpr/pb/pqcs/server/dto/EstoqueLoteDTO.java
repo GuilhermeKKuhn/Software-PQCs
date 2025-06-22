@@ -11,20 +11,28 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
-@NoArgsConstructor
 public class EstoqueLoteDTO {
 
     private String lote;
-    private LocalDate dataFabricacao;
-    private LocalDate dataValidade;
+    private String dataFabricacao;
+    private String dataValidade;
     private Double quantidade;
     private String laboratorio;
+    private String nomeLaboratorio;
 
-    public EstoqueLoteDTO(String lote, LocalDate dataFabricacao, LocalDate dataValidade, Double quantidade, String laboratorio) {
+    private String cas;
+    private String densidade;
+    private String concentracao;
+
+    public EstoqueLoteDTO(String lote, String dataFabricacao, String dataValidade, Double quantidade, String laboratorio, String nomeLaboratorio, String cas, String densidade, String concentracao) {
         this.lote = lote;
         this.dataFabricacao = dataFabricacao;
         this.dataValidade = dataValidade;
         this.quantidade = quantidade;
         this.laboratorio = laboratorio;
+        this.nomeLaboratorio = nomeLaboratorio;
+        this.cas = cas;
+        this.densidade = densidade;
+        this.concentracao = concentracao;
     }
 }

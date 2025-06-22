@@ -29,10 +29,10 @@ public class SolicitacaoController {
         return solicitacaoService.listarPendentes();
     }
 
-    @PostMapping("/{id}/aprovar")
+    /*@PostMapping("/{id}/aprovar")
     public void aprovar(@PathVariable Long id, @RequestBody List<ItemSolicitacaoDTO> itens) {
         solicitacaoService.aprovar(id, itens);
-    }
+    }*/
 
     @GetMapping("/{id}/movimentacao-preenchida")
     public ResponseEntity<MovimentacaoDTO> gerarMovimentacaoDaSolicitacao(@PathVariable Long id) {
@@ -42,6 +42,12 @@ public class SolicitacaoController {
     @GetMapping("/listartodas")
     public List<SolicitacaoDTO> listarTodasVisiveis() {
         return solicitacaoService.listarTodasVisiveis();
+    }
+
+    @PostMapping("/{id}/concluir")
+    public ResponseEntity<Void> concluirSolicitacao(@PathVariable Long id) {
+        solicitacaoService.concluir(id);
+        return ResponseEntity.ok().build();
     }
 
 }

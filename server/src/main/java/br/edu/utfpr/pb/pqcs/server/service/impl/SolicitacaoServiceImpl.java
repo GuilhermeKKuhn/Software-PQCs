@@ -128,7 +128,7 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
         return solicitacoes.stream().map(this::toDTO).toList();
     }
 
-    public void aprovar(Long id, List<ItemSolicitacaoDTO> itensDTO) {
+    /*public void aprovar(Long id, List<ItemSolicitacaoDTO> itensDTO) {
         User user = authService.getUsuarioLogado();
 
         if (!user.getTipoPerfil().equals(TipoPerfil.ADMINISTRADOR)) {
@@ -168,7 +168,7 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
             }
         }
 
-    }
+    }*/
 
     public MovimentacaoDTO gerarMovimentacaoPreenchida(Long solicitacaoId) {
         Solicitacao solicitacao = solicitacaoRepo.findById(solicitacaoId)
@@ -217,6 +217,12 @@ public class SolicitacaoServiceImpl extends CrudServiceImpl<Solicitacao, Long>
         );
     }
 
+    public void concluir(Long id) {
+        Solicitacao solicitacao = solicitacaoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Solicitação não encontrada"));
+        solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
+        solicitacaoRepo.save(solicitacao);
+    }
 
 
 

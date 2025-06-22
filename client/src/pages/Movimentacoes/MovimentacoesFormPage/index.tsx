@@ -8,6 +8,7 @@ import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
 import FornecedorService from "@/service/FornecedorService";
 import LaboratorioService from "@/service/LaboratorioService";
 import MovimentacaoService from "@/service/MovimentacaoService";
+import SolicitacaoService from "@/service/SolicitacaoService";
 
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { CabecalhoMovimentacaoForm } from "@/components/Common/CabecalhoMovimentacaoForm/CabecalhoMovimentacaoForm";
@@ -23,12 +24,14 @@ import { IProdutoSimplificado, LoteDisponivel } from "@/commons/ProdutoQuimicoIn
 import { IFornecedor } from "@/commons/FornecedorInterface";
 
 export default function MovimentacoesFormPage() {
-  const { id } = useParams();
+  const { id: solicitacaoId } = useParams();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+
   const user = useAuthUser();
   const isAdmin = user?.tipoPerfil === "ADMINISTRADOR";
-  const isNova = !id;
+  const isSolicitacao = Boolean(solicitacaoId);
+  const isNova = !solicitacaoId;
 
   const { control, watch, setValue, getValues, reset } = useForm<IMovimentacaoForm>({
     defaultValues: {
@@ -57,8 +60,6 @@ export default function MovimentacoesFormPage() {
   const [dialogEntradaAberto, setDialogEntradaAberto] = useState(false);
   const [dialogTransferenciaAberto, setDialogTransferenciaAberto] = useState(false);
 
-  const disableTipo = !isAdmin || !isNova;
-
   // 🔥 Carregar dados iniciais
   useEffect(() => {
     ProdutoQuimicoService.listarProdutosQuimicos().then((res) => {
@@ -73,7 +74,7 @@ export default function MovimentacoesFormPage() {
     });
 
     FornecedorService.listarFornecedores().then((res) => {
-      setFornecedores(res.data); // ⚠️ Agora pega todos os dados do fornecedor
+      setFornecedores(res.data);
     });
 
     LaboratorioService.listarLaboratorios().then((res) => {
@@ -89,16 +90,16 @@ export default function MovimentacoesFormPage() {
     });
   }, [user]);
 
-  // 🔥 Carregar movimentação se for edição
+  // 🔥 Se for uma movimentação baseada em solicitação, carregar dados da solicitação
   useEffect(() => {
-    if (id) {
-      MovimentacaoService.gerarMovimentacaoPreenchida(Number(id)).then((res) => {
+    if (solicitacaoId) {
+      MovimentacaoService.gerarMovimentacaoPreenchida(Number(solicitacaoId)).then((res) => {
         const mov = res.data;
         reset({
           tipo: mov.tipo,
           laboratorioDestino: mov.laboratorioDestino,
-          laboratorioOrigem: mov.laboratorioOrigem,
-          notaFiscal: mov.notaFiscal ?? {
+          laboratorioOrigem: { id: 0 }, // Admin escolhe na hora
+          notaFiscal: {
             numeroNotaFiscal: 0,
             dataRecebimento: new Date().toISOString(),
             fornecedor: { id: 0 },
@@ -113,9 +114,22 @@ export default function MovimentacoesFormPage() {
         );
       });
     }
-  }, [id, reset]);
+  }, [solicitacaoId, reset]);
 
-  // 🔍 Buscar lotes disponíveis
+  // 🔥 Se for user não-admin (responsável), força tipo para SAIDA
+  useEffect(() => {
+    if (
+      (user?.tipoPerfil === "RESPONSAVEL_LABORATORIO" ||
+        user?.tipoPerfil === "RESPONSAVEL_DEPARTAMENTO") &&
+      isNova
+    ) {
+      setValue("tipo", "SAIDA");
+      if (user.laboratoriosId.length === 1) {
+        setValue("laboratorioOrigem.id", user.laboratoriosId[0]);
+      }
+    }
+  }, [user, isNova, setValue]);
+
   const buscarLotesDisponiveis = (produtoId: number) => {
     if (!laboratorioOrigemId) {
       toast.current?.show({
@@ -131,7 +145,6 @@ export default function MovimentacoesFormPage() {
     });
   };
 
-  // ➕ Adicionar ou Editar item
   const handleAdicionarItem = (item: IItemMovimentacao) => {
     if (indexEditando !== null) {
       const novos = [...itens];
@@ -159,10 +172,32 @@ export default function MovimentacoesFormPage() {
     return true;
   };
 
+  const handleConfirmar = () => {
+    const dados = getValues();
+
+    const dto = {
+      tipo: dados.tipo,
+      laboratorioDestino: dados.laboratorioDestino,
+      laboratorioOrigem: dados.laboratorioOrigem,
+      notaFiscal: isAdmin ? dados.notaFiscal : null,
+      itens,
+    };
+
+    MovimentacaoService.novaMovimentacao(dto).then(() => {
+      if (isSolicitacao) {
+        SolicitacaoService.concluir(Number(solicitacaoId)).then(() => {
+          navigate("/movimentacoes");
+        });
+      } else {
+        navigate("/movimentacoes");
+      }
+    });
+  };
+
   return (
     <div className="container">
       <Toast ref={toast} />
-      <PageHeader title={isNova ? "Nova Movimentação" : "Editar Movimentação"} />
+      <PageHeader title={isNova ? "Nova Movimentação" : "Movimentação"} />
 
       <CabecalhoMovimentacaoForm
         control={control}
@@ -170,14 +205,14 @@ export default function MovimentacoesFormPage() {
         setValue={setValue}
         fornecedores={fornecedores}
         laboratorios={laboratorios}
-        disableTipo={disableTipo}
+        disableTipo={!isAdmin} 
         hideNotaFiscal={!isAdmin}
-        hideDestino={!isAdmin}
+        hideDestino={false}
       />
 
       <ItensMovimentacaoForm
         produtos={produtos}
-        tipoMovimentacao={tipo}
+        tipoMovimentacao={watch("tipo")}
         onAdicionar={handleAdicionarItem}
         laboratorioOrigemId={laboratorioOrigemId}
         buscarLotesDisponiveis={buscarLotesDisponiveis}
@@ -190,16 +225,16 @@ export default function MovimentacoesFormPage() {
           setProdutoSelecionado({
             id: item.produtoId,
             nome: item.nomeProduto,
-            cas: item.cas || '',
-            densidade: item.densidade || '',
-            concentracao: item.concentracao || '',
+            cas: item.cas || "",
+            densidade: item.densidade || "",
+            concentracao: item.concentracao || "",
           });
 
           setIndexEditando(index);
 
-          if (tipo === "ENTRADA") {
+          if (watch("tipo") === "ENTRADA") {
             setDialogEntradaAberto(true);
-          } else if (tipo === "TRANSFERENCIA" || tipo === "SAIDA") {
+          } else {
             buscarLotesDisponiveis(item.produtoId);
             setDialogTransferenciaAberto(true);
           }
@@ -236,6 +271,7 @@ export default function MovimentacoesFormPage() {
         dadosCabecalho={getValues()}
         itens={itens}
         validarCabecalho={validarCabecalho}
+        onConfirmar={handleConfirmar}
       />
     </div>
   );

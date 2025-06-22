@@ -1,5 +1,7 @@
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
+import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -15,20 +17,43 @@ interface Props {
   validarCabecalho: () => boolean;
 }
 
-export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho }: Props) {
+export function ConfirmarMovimentacao({
+  dadosCabecalho,
+  itens,
+  validarCabecalho,
+}: Props) {
   const toast = useRef<Toast>(null);
   const navigate = useNavigate();
   const { id } = useParams();
+
   const [loading, setLoading] = useState(false);
+  const [dialogMotivoAberto, setDialogMotivoAberto] = useState(false);
+  const [motivoSaida, setMotivoSaida] = useState<string | null>(null);
+
+  const motivos = [
+    { label: "Atividades de Ensino", value: "ATIVIDADES_ENSINO" },
+    { label: "Atividades de Pesquisa", value: "ATIVIDADES_PESQUISA" },
+    { label: "Atividades de Extensão", value: "ATIVIDADES_EXTENSAO" },
+    { label: "Outros", value: "OUTROS" },
+  ];
 
   const formatarData = (data: string | Date | null | undefined) => {
     if (!data) return null;
     const dateObj = typeof data === "string" ? new Date(data) : data;
-    return dateObj.toISOString().split("T")[0]; // yyyy-MM-dd
+    return dateObj.toISOString().split("T")[0];
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validarCabecalho()) return;
+
+    if (!itens || itens.length === 0) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "Atenção",
+        detail: "Adicione pelo menos um item na movimentação.",
+      });
+      return;
+    }
 
     if (dadosCabecalho.tipo === "ENTRADA") {
       const algumSemDatas = itens.some(
@@ -38,17 +63,37 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
         toast.current?.show({
           severity: "warn",
           summary: "Atenção",
-          detail: "Todos os itens precisam ter data de fabricação e validade na entrada.",
+          detail:
+            "Todos os itens precisam ter data de fabricação e validade na entrada.",
         });
         return;
       }
     }
 
+    if (dadosCabecalho.tipo === "SAIDA") {
+      setDialogMotivoAberto(true);
+    } else {
+      executarConfirmacao(null);
+    }
+  };
+
+  const executarConfirmacao = async (motivo: string | null) => {
     const payload = {
       ...dadosCabecalho,
-      laboratorioOrigem: dadosCabecalho.tipo === "ENTRADA" ? null : dadosCabecalho.laboratorioOrigem,
+      motivoSaida: motivo,
+      laboratorioOrigem:
+        dadosCabecalho.tipo === "ENTRADA"
+          ? null
+          : dadosCabecalho.laboratorioOrigem,
       itens: itens.map(
-        ({ produtoId, quantidadeAprovada, lote, preco, fabricacao, validade }) => ({
+        ({
+          produtoId,
+          quantidadeAprovada,
+          lote,
+          preco,
+          fabricacao,
+          validade,
+        }) => ({
           produtoId,
           quantidade: quantidadeAprovada,
           lote,
@@ -62,54 +107,27 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
     try {
       setLoading(true);
 
+      
+      await MovimentacaoService.novaMovimentacao(payload as any);
+
+      
       if (id) {
-        const itensSolicitacaoPayload = itens.map((item) => ({
-          id: item.idSolicitacaoItem,
-          produtoId: item.produtoId,
-          quantidadeSolicitada: item.quantidadeSolicitada ?? 0,
-          quantidadeAprovada: item.quantidadeAprovada ?? 0,
-          loteSelecionado: item.lote,
-          laboratorioOrigemId: dadosCabecalho.laboratorioOrigem?.id ?? 0,
-        }));
-
-        await SolicitacaoService.aprovarSolicitacao(Number(id), itensSolicitacaoPayload);
-
-        toast.current?.show({
-          severity: "success",
-          summary: "Sucesso",
-          detail: "Movimentação realizada com sucesso!",
-        });
-
-      } else {
-        await MovimentacaoService.novaMovimentacao(payload as any);
-
-        toast.current?.show({
-          severity: "success",
-          summary: "Sucesso",
-          detail: "Movimentação realizada com sucesso!",
-        });
+        await SolicitacaoService.concluir(Number(id));
       }
 
-      setTimeout(() => navigate("/movimentacoes"), 1500);
+      toast.current?.show({
+        severity: "success",
+        summary: "Sucesso",
+        detail: "Movimentação realizada com sucesso!",
+      });
 
+      setTimeout(() => navigate("/movimentacoes"), 1500);
     } catch (error: any) {
       let mensagem =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
         error?.message ||
         "Erro inesperado ao processar a movimentação.";
-
-      if (
-        typeof error?.response?.data === "string" &&
-        error.response.data.includes("HTTP Status 500")
-      ) {
-        const match = error.response.data.match(
-          /<b>Message<\/b>\s*Request processing failed:.*?:(.*?)<\/p>/
-        );
-        if (match && match[1]) {
-          mensagem = match[1].trim();
-        }
-      }
 
       const erroEstoque = mensagem.includes("Quantidade insuficiente");
 
@@ -119,7 +137,6 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
         detail: mensagem,
         life: 6000,
       });
-
     } finally {
       setLoading(false);
     }
@@ -128,6 +145,7 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
   return (
     <div className="container mt-4">
       <Toast ref={toast} />
+
       <div className="d-flex justify-content-end">
         <Button
           label="Confirmar Movimentação"
@@ -137,6 +155,52 @@ export function ConfirmarMovimentacao({ dadosCabecalho, itens, validarCabecalho 
           onClick={handleSubmit}
         />
       </div>
+
+      <Dialog
+        header="Motivo da Saída"
+        visible={dialogMotivoAberto}
+        onHide={() => setDialogMotivoAberto(false)}
+        modal
+        style={{ width: "400px" }}
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button
+              label="Cancelar"
+              icon="pi pi-times"
+              onClick={() => setDialogMotivoAberto(false)}
+              className="p-button-text"
+            />
+            <Button
+              label="Confirmar"
+              icon="pi pi-check"
+              onClick={() => {
+                if (!motivoSaida) {
+                  toast.current?.show({
+                    severity: "warn",
+                    summary: "Atenção",
+                    detail: "Selecione um motivo.",
+                  });
+                  return;
+                }
+                setDialogMotivoAberto(false);
+                executarConfirmacao(motivoSaida);
+              }}
+            />
+          </div>
+        }
+      >
+        <div className="field">
+          <label htmlFor="motivo">Selecione o motivo da saída</label>
+          <Dropdown
+            id="motivo"
+            value={motivoSaida}
+            options={motivos}
+            onChange={(e) => setMotivoSaida(e.value)}
+            placeholder="Selecione"
+            className="w-100"
+          />
+        </div>
+      </Dialog>
     </div>
   );
 }

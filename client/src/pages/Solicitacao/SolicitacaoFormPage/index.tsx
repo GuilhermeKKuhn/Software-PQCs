@@ -1,14 +1,19 @@
-import { IItemSolicitacao, ISolicitacaoCreate } from "@/commons/ItemSolicitacaoInterface";
-import { ILaboratorio } from "@/commons/LaboratorioInterface";
-import { IProdutoQuimico } from "@/commons/ProdutoQuimicoInterface";
-import { ISolicitacao } from "@/commons/Solicitacaointerface";
-import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
-import LaboratorioService from "@/service/LaboratorioService";
-import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
-import SolicitacaoService from "@/service/SolicitacaoService";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toast } from "primereact/toast";
+import { Dialog } from "primereact/dialog";
+
+import { IItemSolicitacao } from "@/commons/ItemSolicitacaoInterface";
+import { IProdutoQuimico } from "@/commons/ProdutoQuimicoInterface";
+import { ILaboratorio } from "@/commons/LaboratorioInterface";
+
+import ProdutoQuimicoService from "@/service/ProdutoQuimicoService";
+import LaboratorioService from "@/service/LaboratorioService";
+import SolicitacaoService from "@/service/SolicitacaoService";
+
+import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
+import { DialogSelecionarProduto } from "@/components/Common/SelecionarProduto/DialogSelecionarProduto";
+
 
 export function SolicitacaoFormPage() {
   const navigate = useNavigate();
@@ -17,22 +22,20 @@ export function SolicitacaoFormPage() {
   const [laboratorios, setLaboratorios] = useState<ILaboratorio[]>([]);
   const [produtos, setProdutos] = useState<IProdutoQuimico[]>([]);
   const [laboratorioId, setLaboratorioId] = useState<number | null>(null);
-
   const [itens, setItens] = useState<IItemSolicitacao[]>([]);
 
-  const [produtoSelecionado, setProdutoSelecionado] = useState<number | null>(null);
+  const [dialogProdutoAberto, setDialogProdutoAberto] = useState(false);
+  const [dialogQuantidadeAberto, setDialogQuantidadeAberto] = useState(false);
+
+  const [produtoSelecionado, setProdutoSelecionado] = useState<IProdutoQuimico | null>(null);
   const [quantidade, setQuantidade] = useState<number>(0);
 
   useEffect(() => {
-    LaboratorioService.listarLaboratoriosPermitidos().then((res) => {
-      setLaboratorios(res.data);
-    });
-    ProdutoQuimicoService.listarProdutosQuimicos().then((res) => {
-      setProdutos(res.data);
-    });
+    LaboratorioService.listarLaboratoriosPermitidos().then((res) => setLaboratorios(res.data));
+    ProdutoQuimicoService.listarProdutosQuimicos().then((res) => setProdutos(res.data));
   }, []);
 
-  const adicionarItem = () => {
+  const handleAdicionarItem = () => {
     if (!produtoSelecionado || quantidade <= 0) {
       toast.current?.show({
         severity: "warn",
@@ -43,15 +46,13 @@ export function SolicitacaoFormPage() {
       return;
     }
 
-    const produto = produtos.find(p => p.id === produtoSelecionado);
-    if (!produto) return;
-
     const novoItem: IItemSolicitacao = {
-      produtoId: produto.id!,
+      produtoId: produtoSelecionado.id,
       quantidadeSolicitada: quantidade,
     };
 
-    setItens([...itens, novoItem]);
+    setItens((prev) => [...prev, novoItem]);
+    setDialogQuantidadeAberto(false);
     setProdutoSelecionado(null);
     setQuantidade(0);
   };
@@ -73,30 +74,29 @@ export function SolicitacaoFormPage() {
       return;
     }
 
-    const dto: ISolicitacaoCreate = {
+    const dto = {
       laboratorioId,
-      itens
+      itens,
     };
 
-    SolicitacaoService.criarSolicitacao(dto).then(() => {
-      toast.current?.show({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Solicitação enviada com sucesso!",
-        life: 2000,
+    SolicitacaoService.criarSolicitacao(dto)
+      .then(() => {
+        toast.current?.show({
+          severity: "success",
+          summary: "Sucesso",
+          detail: "Solicitação enviada com sucesso!",
+          life: 2000,
+        });
+        setTimeout(() => navigate("/solicitacoes"), 1000);
+      })
+      .catch(() => {
+        toast.current?.show({
+          severity: "error",
+          summary: "Erro ao enviar",
+          detail: "Ocorreu um erro ao enviar a solicitação.",
+          life: 4000,
+        });
       });
-
-      setTimeout(() => {
-        navigate("/solicitacoes");
-      }, 1000);
-    }).catch(() => {
-      toast.current?.show({
-        severity: "error",
-        summary: "Erro ao enviar",
-        detail: "Ocorreu um erro ao enviar a solicitação.",
-        life: 4000,
-      });
-    });
   };
 
   return (
@@ -104,7 +104,7 @@ export function SolicitacaoFormPage() {
       <Toast ref={toast} />
       <PageHeader title="Nova Solicitação de Material" />
 
-      <div className="form-group mb-3">
+      <div className="card p-3 mb-4">
         <label>Laboratório</label>
         <select
           className="form-control"
@@ -120,62 +120,102 @@ export function SolicitacaoFormPage() {
         </select>
       </div>
 
-      <div className="form-group mb-3">
-        <label>Produto</label>
-        <select
-          className="form-control"
-          value={produtoSelecionado || ""}
-          onChange={(e) => setProdutoSelecionado(Number(e.target.value))}
-        >
-          <option value="">Selecione...</option>
-          {produtos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nome} ({p.cas})
-            </option>
-          ))}
-        </select>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h5>Itens da Solicitação</h5>
+        <button className="btn btn-secondary" onClick={() => setDialogProdutoAberto(true)}>
+          Adicionar Item
+        </button>
       </div>
 
-      <div className="form-group mb-3">
-        <label>Quantidade</label>
-        <input
-          type="number"
-          className="form-control"
-          value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-        />
-      </div>
+      {itens.length === 0 && (
+        <p className="text-muted">Nenhum item adicionado ainda.</p>
+      )}
 
-      <button className="btn btn-secondary mb-3" onClick={adicionarItem}>
-        Adicionar Item
-      </button>
-
-      <h5 className="mb-3">Itens da Solicitação</h5>
-        <div className="mb-4">
-        {itens.length === 0 && (
-            <p className="text-muted">Nenhum item adicionado ainda.</p>
-        )}
-        {itens.map((item, index) => {
-            const produto = produtos.find(p => p.id === item.produtoId);
-            return (
-            <div key={index} className="card mb-2 shadow-sm">
-                <div className="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 className="mb-1">{produto?.nome}</h6>
-                    <small className="text-muted">Quantidade solicitada: {item.quantidadeSolicitada}</small>
-                </div>
-                <button className="btn btn-sm btn-outline-danger" onClick={() => removerItem(index)}>
-                    Remover
-                </button>
-                </div>
+      {itens.map((item, index) => {
+        const produto = produtos.find((p) => p.id === item.produtoId);
+        return (
+          <div key={index} className="card mb-2 shadow-sm">
+            <div className="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <h6 className="mb-1">{produto?.nome}</h6>
+                <small className="text-muted">
+                  Quantidade solicitada: <strong>{item.quantidadeSolicitada}</strong>
+                </small>
+              </div>
+              <button
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => removerItem(index)}
+              >
+                Remover
+              </button>
             </div>
-            );
-        })}
-        </div>
+          </div>
+        );
+      })}
 
-      <button className="btn btn-primary" onClick={enviarSolicitacao}>
-        Enviar Solicitação
-      </button>
+      <div className="text-end mt-3">
+        <button className="btn btn-success" onClick={enviarSolicitacao}>
+          Enviar Solicitação
+        </button>
+      </div>
+
+      {/* Dialog selecionar produto */}
+      <DialogSelecionarProduto
+        visible={dialogProdutoAberto}
+        onHide={() => setDialogProdutoAberto(false)}
+        produtos={produtos}
+        onSelect={(produto) => {
+          setProdutoSelecionado(produto);
+          setDialogProdutoAberto(false);
+          setDialogQuantidadeAberto(true);
+        }}
+      />
+
+      {/* Dialog para definir quantidade */}
+      <Dialog
+        header="Definir Quantidade"
+        visible={dialogQuantidadeAberto}
+        onHide={() => setDialogQuantidadeAberto(false)}
+        style={{ width: "400px" }}
+        modal
+      >
+        {produtoSelecionado && (
+          <>
+            <div className="mb-3">
+              <label>Produto</label>
+              <input
+                type="text"
+                className="form-control"
+                value={produtoSelecionado.nome}
+                disabled
+              />
+            </div>
+
+            <div className="mb-3">
+              <label>Quantidade</label>
+              <input
+                type="number"
+                className="form-control"
+                value={quantidade}
+                onChange={(e) => setQuantidade(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="text-end">
+              <button
+                className="btn btn-secondary me-2"
+                onClick={() => setDialogQuantidadeAberto(false)}
+              >
+                Cancelar
+              </button>
+              <button className="btn btn-primary" onClick={handleAdicionarItem}>
+                Confirmar
+              </button>
+            </div>
+          </>
+        )}
+      </Dialog>
     </div>
   );
 }

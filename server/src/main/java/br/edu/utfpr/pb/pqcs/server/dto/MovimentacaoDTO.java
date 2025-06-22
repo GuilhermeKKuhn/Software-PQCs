@@ -25,5 +25,6 @@ public class MovimentacaoDTO {
     private List<ItemMovimentacaoDTO> itens;
 
     private UserDTO usuario;
+    private String motivoSaida;
 
 }

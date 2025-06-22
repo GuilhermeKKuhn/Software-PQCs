@@ -1,5 +1,20 @@
 import { api } from "@/lib/axios";
 
+// 🔧 Helper para download de arquivo Blob
+const downloadBlob = (data: BlobPart, filename: string) => {
+  const blob = new Blob([data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
 const exportarMovimentacoes = async (inicio: Date, fim: Date) => {
   const params = new URLSearchParams({
     inicio: inicio.toISOString().split("T")[0],
@@ -10,45 +25,63 @@ const exportarMovimentacoes = async (inicio: Date, fim: Date) => {
     responseType: "blob",
   });
 
-  const blob = new Blob([response.data], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", "relatorio-movimentacoes.xlsx");
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  downloadBlob(response.data, "relatorio-movimentacoes.xlsx");
 };
 
-const exportarFornecedores = () => {
-  return api.get("/relatorios/fornecedores", {
+const exportarMovimentacoesPersonalizado = async (
+  inicio: Date,
+  fim: Date,
+  tipos: string[]
+) => {
+  const params = new URLSearchParams({
+    dataInicio: inicio.toISOString().split("T")[0],
+    dataFim: fim.toISOString().split("T")[0],
+    tipos: tipos.join(","),
+  });
+
+  const response = await api.get(
+    `/relatorios/movimentacoes-personalizado?${params.toString()}`,
+    {
+      responseType: "blob",
+    }
+  );
+
+  downloadBlob(response.data, "relatorio-movimentacoes-personalizado.xlsx");
+};
+
+const exportarFornecedores = async () => {
+  const response = await api.get("/relatorios/fornecedores", {
     responseType: "blob",
   });
+  downloadBlob(response.data, "relatorio-fornecedores.xlsx");
 };
 
-const exportarUsuarios = () => {
-  return api.get("/relatorios/usuarios", { responseType: "blob" });
-};
-
-const exportarProdutos = () => {
-  return api.get("/relatorios/produtos", {
+const exportarUsuarios = async () => {
+  const response = await api.get("/relatorios/usuarios", {
     responseType: "blob",
   });
+  downloadBlob(response.data, "relatorio-usuarios.xlsx");
 };
 
-const exportarEstoque = () => {
-  return api.get("/relatorios/estoque", {
+const exportarProdutos = async () => {
+  const response = await api.get("/relatorios/produtos", {
     responseType: "blob",
   });
+  downloadBlob(response.data, "relatorio-produtos.xlsx");
+};
+
+const exportarEstoque = async () => {
+  const response = await api.get("/relatorios/estoque", {
+    responseType: "blob",
+  });
+  downloadBlob(response.data, "relatorio-estoque.xlsx");
 };
 
 export default {
   exportarMovimentacoes,
+  exportarMovimentacoesPersonalizado,
   exportarFornecedores,
   exportarUsuarios,
   exportarProdutos,
-  exportarEstoque
+  exportarEstoque,
 };

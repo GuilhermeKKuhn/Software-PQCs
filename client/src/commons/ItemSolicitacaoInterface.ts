@@ -6,6 +6,7 @@ export interface IItemSolicitacao {
   loteSelecionado?: string;
   laboratorioOrigemId?: number;
   nomeProduto?: string;
+  cas?: string;
 }
 
 

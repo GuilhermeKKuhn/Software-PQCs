@@ -73,43 +73,49 @@ export const SidebarMenu = () => {
       icon: "pi pi-send",
       command: () => navigate("/solicitacoes-pendentes"),
     },
+        {
+      label: "Relatorios",
+      icon: "pi pi-file-excel",
+      command: () => navigate("/relatorios"),
+    },
+
   ];
 
     const responsavelLabItems: MenuItem[] = [
-    {
-      label: "Estoque",
-      icon: "pi pi-database",
-      command: () => navigate("/estoque"),
-    },
-    {
-      label: "Movimentações",
-      icon: "pi pi-sync",
-      command: () => navigate("/movimentacoes/nova"),
-    },
-    {
-      label: "Solicitação",
-      icon: "pi pi-send",
-      command: () => navigate("/solicitacoes"),
-    },
-  ];
+  {
+    label: "Estoque",
+    icon: "pi pi-database",
+    command: () => navigate("/estoque"),
+  },
+  {
+    label: "Movimentações",
+    icon: "pi pi-sync",
+    command: () => navigate("/movimentacoes"), // <-- corrigido
+  },
+  {
+    label: "Solicitação",
+    icon: "pi pi-send",
+    command: () => navigate("/solicitacoes"),
+  },
+];
 
-  const responsavelDepItems: MenuItem[] = [
-    {
-      label: "Estoques dos Laboratórios",
-      icon: "pi pi-database",
-      command: () => navigate("/estoque"),
-    },
-    {
-      label: "Movimentações",
-      icon: "pi pi-sync",
-      command: () => navigate("/movimentacoes/nova"),
-    },
-    {
-      label: "Solicitação",
-      icon: "pi pi-send",
-      command: () => navigate("/solicitacoes"),
-    },
-  ];
+const responsavelDepItems: MenuItem[] = [
+  {
+    label: "Estoques dos Laboratórios",
+    icon: "pi pi-database",
+    command: () => navigate("/estoque"),
+  },
+  {
+    label: "Movimentações",
+    icon: "pi pi-sync",
+    command: () => navigate("/movimentacoes"), 
+  },
+  {
+    label: "Solicitação",
+    icon: "pi pi-send",
+    command: () => navigate("/solicitacoes"),
+  },
+];
 
 
   let roleItems: MenuItem[] = [];

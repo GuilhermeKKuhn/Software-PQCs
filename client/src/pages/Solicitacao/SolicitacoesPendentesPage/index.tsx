@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+
 import SolicitacaoService from "@/service/SolicitacaoService";
 import { ISolicitacao } from "@/commons/Solicitacaointerface";
+
 import { PageHeader } from "@/components/Common/PageHeader/PageHeader";
 import { DataTableComp } from "@/components/Common/DataTableComp/DataTableComp";
-import { format } from "date-fns";
 import { TableHeader } from "@/components/Common/TableHeaderProps/TableHeaderProps";
 import { SearchBar } from "@/components/Common/SearchBar/SearchBar";
 import { DetalhesDialog } from "@/components/Common/DetalhesDialog/DetalhesDialog";
+
 
 export function SolicitacoesPendentesPage() {
   const [solicitacoes, setSolicitacoes] = useState<ISolicitacao[]>([]);
@@ -38,6 +41,20 @@ export function SolicitacoesPendentesPage() {
     );
   });
 
+  const isFinalizada = (status: string) => 
+    ["APROVADA", "RECUSADA", "CONCLUIDA"].includes(status.toUpperCase());
+
+  const handleRowClick = (e: any) => {
+    const solicitacao = e.data as ISolicitacao;
+
+    if (isFinalizada(solicitacao.status)) {
+      setSelecionada(solicitacao);
+      setDetalhesVisivel(true);
+    } else {
+      navigate(`/movimentacoes/nova/${solicitacao.id}`);
+    }
+  };
+
   const columns = [
     {
       field: "dataSolicitacao",
@@ -64,26 +81,29 @@ export function SolicitacoesPendentesPage() {
     {
       field: "status",
       header: "Status",
+      body: (rowData: ISolicitacao) => (
+        <span
+          className={`badge ${
+            rowData.status === "PENDENTE"
+              ? "bg-warning"
+              : rowData.status === "APROVADA"
+              ? "bg-success"
+              : rowData.status === "RECUSADA"
+              ? "bg-danger"
+              : "bg-secondary"
+          }`}
+        >
+          {rowData.status}
+        </span>
+      ),
       headerStyle: { textAlign: "center" as const },
       bodyStyle: { textAlign: "left" as const },
     },
   ];
 
-  const handleRowClick = (e: any) => {
-    const solicitacao = e.data as ISolicitacao;
-    const status = solicitacao.status.toUpperCase();
-
-    if (status === "APROVADA" || status === "RECUSADA") {
-      setSelecionada(solicitacao);
-      setDetalhesVisivel(true);
-    } else {
-      navigate(`/movimentacoes/nova/${solicitacao.id}`);
-    }
-  };
-
   return (
     <div className="container">
-      <PageHeader title="Solicitações" />
+      <PageHeader title="Solicitações Pendentes" />
 
       <TableHeader
         left={
@@ -120,7 +140,8 @@ export function SolicitacoesPendentesPage() {
             {
               label: "Laboratório",
               field: "laboratorio.nomeLaboratorio",
-              body: (data) => `${data.laboratorio?.nomeLaboratorio ?? "-"}`,
+              body: (data) =>
+                `${data.laboratorio?.nomeLaboratorio ?? "-"}`,
             },
             { label: "Status", field: "status" },
             {

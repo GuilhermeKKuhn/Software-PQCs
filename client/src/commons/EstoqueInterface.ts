@@ -1,6 +1,9 @@
 export interface IEstoqueProduto {
   id: number;
   nome: string;
+  cas: string;
+  densidade: string;
+  concentracao: string;
   quantidadeTotal: number;
 }
 

@@ -5,19 +5,17 @@ import { IItemMovimentacao } from "./ItemMovimentacaoInterface";
 export interface IMovimentacao {
   id: number;
   tipo: string;
+  motivoSaida?: string | null; // <-- Adiciona aqui
   dataMovimentacao?: string;
+  notaFiscal?: INotaFiscal | null;
+  laboratorioDestino?: ILaboratorio | null;
+  laboratorioOrigem?: ILaboratorio | null;
+  usuario?: { id: number; nome: string }; // <-- nome aqui no backend vem como "nome"
+  itens: IItemMovimentacao[];
   lote?: string;
   quantidade?: number;
-  validade?: string;
-  notaFiscal?: INotaFiscal;
-  itens: IItemMovimentacao[];
-  laboratorioOrigem?: ILaboratorio | null;
-  laboratorioDestino?: ILaboratorio | null;
-  usuario?: {
-    id: number;
-    nome: string;
-  };
 }
+
 
 export interface IMovimentacaoForm {
   tipo: "ENTRADA" | "TRANSFERENCIA" | "SAIDA" | "";
