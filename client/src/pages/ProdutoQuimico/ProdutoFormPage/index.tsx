@@ -122,7 +122,7 @@ export function ProdutoFormPage() {
 
   const orgaosControladores: { label: string; value: OrgaoControlador }[] = [
   { label: 'Polícia Federal', value: 'POLICIA_FEDERAL' },
-  { label: 'Polícia Militar', value: 'POLICIA_MILITAR' },
+  { label: 'Polícia Civil', value: 'POLICIA_CIVIL' },
   { label: 'Exército', value: 'EXERCITO' },
 ];
 

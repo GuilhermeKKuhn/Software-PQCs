@@ -19,6 +19,8 @@ import { ExportarXlsx } from "@/components/Common/ExportarXlsx/ExportarXlsx";
 import { useAuthUser } from "@/hooks/useAuthUser/UseAuthUser";
 import { IProdutoSimplificado } from "@/commons/ProdutoQuimicoInterface";
 
+// ... imports (mantém como está)
+
 export function MovimentacaoPage() {
   const navigate = useNavigate();
   const user = useAuthUser();
@@ -54,11 +56,7 @@ export function MovimentacaoPage() {
       const agrupadasMap = new Map<string, IMovimentacaoAgrupada>();
 
       dados.forEach((mov) => {
-        const key = `${mov.tipo}-${
-          mov.notaFiscal?.id ?? "semNota"
-        }-${mov.laboratorioDestino?.id ?? "semDestino"}-${
-          mov.laboratorioOrigem?.id ?? "semOrigem"
-        }`;
+        const key = `${mov.id}`;
 
         if (!agrupadasMap.has(key)) {
           agrupadasMap.set(key, {
@@ -132,12 +130,6 @@ export function MovimentacaoPage() {
       header: "Data",
       body: (row: IMovimentacaoAgrupada) =>
         row.data ? new Date(row.data).toLocaleDateString("pt-BR") : "-",
-    },
-    {
-      field: "notaFiscal.numeroNotaFiscal",
-      header: "Nota Fiscal",
-      body: (row: IMovimentacaoAgrupada) =>
-        row.notaFiscal?.numeroNotaFiscal ?? "-",
     },
     {
       field: "laboratorioDestino.nomeLaboratorio",
@@ -224,12 +216,6 @@ export function MovimentacaoPage() {
                 data.notaFiscal?.numeroNotaFiscal ?? "Sem Nota",
             },
             {
-              label: "Fornecedor",
-              field: "notaFiscal.fornecedor.razaoSocial",
-              body: (data) =>
-                data.notaFiscal?.fornecedor?.razaoSocial ?? "-",
-            },
-            {
               label: "Origem",
               field: "laboratorioOrigem.nomeLaboratorio",
               body: (data) =>
@@ -288,3 +274,4 @@ export function MovimentacaoPage() {
     </div>
   );
 }
+

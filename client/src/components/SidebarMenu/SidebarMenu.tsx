@@ -6,17 +6,14 @@ import AuthService from "@/service/AuthService";
 
 export const SidebarMenu = () => {
   const navigate = useNavigate();
-  const role = AuthService.getUserRole(); // ex: "ROLE_ADMINISTRADOR"
+  const role = AuthService.getUserRole();
 
-  const commonItems: MenuItem[] = [
+  const adminItems: MenuItem[] = [
     {
       label: "Página Inicial",
       icon: "pi pi-home",
-      command: () => navigate("/home"),
+      command: () => navigate("/solicitacoes-pendentes"),
     },
-  ];
-
-  const adminItems: MenuItem[] = [
     {
       label: "Produtos",
       icon: "pi pi-box",
@@ -81,41 +78,51 @@ export const SidebarMenu = () => {
 
   ];
 
-    const responsavelLabItems: MenuItem[] = [
-  {
-    label: "Estoque",
-    icon: "pi pi-database",
-    command: () => navigate("/estoque"),
-  },
-  {
-    label: "Movimentações",
-    icon: "pi pi-sync",
-    command: () => navigate("/movimentacoes"), // <-- corrigido
-  },
-  {
-    label: "Solicitação",
-    icon: "pi pi-send",
-    command: () => navigate("/solicitacoes"),
-  },
-];
+  const responsavelLabItems: MenuItem[] = [
+    {
+      label: "Página Inicial",
+      icon: "pi pi-home",
+      command: () => navigate("/solicitacoes"),
+    },
+    {
+      label: "Estoque",
+      icon: "pi pi-database",
+      command: () => navigate("/estoque"),
+    },
+    {
+      label: "Movimentações",
+      icon: "pi pi-sync",
+      command: () => navigate("/movimentacoes"),
+    },
+    {
+      label: "Solicitação",
+      icon: "pi pi-send",
+      command: () => navigate("/solicitacoes"),
+    },
+  ];
 
-const responsavelDepItems: MenuItem[] = [
-  {
-    label: "Estoques dos Laboratórios",
-    icon: "pi pi-database",
-    command: () => navigate("/estoque"),
-  },
-  {
-    label: "Movimentações",
-    icon: "pi pi-sync",
-    command: () => navigate("/movimentacoes"), 
-  },
-  {
-    label: "Solicitação",
-    icon: "pi pi-send",
-    command: () => navigate("/solicitacoes"),
-  },
-];
+  const responsavelDepItems: MenuItem[] = [
+     {
+      label: "Página Inicial",
+      icon: "pi pi-home",
+      command: () => navigate("/solicitacoes"),
+    },
+    {
+      label: "Estoques dos Laboratórios",
+      icon: "pi pi-database",
+      command: () => navigate("/estoque"),
+    },
+    {
+      label: "Movimentações",
+      icon: "pi pi-sync",
+      command: () => navigate("/movimentacoes"), 
+    },
+    {
+      label: "Solicitação",
+      icon: "pi pi-send",
+      command: () => navigate("/solicitacoes"),
+    },
+  ];
 
 
   let roleItems: MenuItem[] = [];
@@ -134,7 +141,7 @@ const responsavelDepItems: MenuItem[] = [
       roleItems = [];
   }
 
-  const items: MenuItem[] = [...commonItems, ...roleItems];
+  const items: MenuItem[] = [ ...roleItems];
 
   return (
     <div className="d-flex flex-column h-100">

@@ -43,6 +43,19 @@ export function ConfirmarMovimentacao({
     return dateObj.toISOString().split("T")[0];
   };
 
+  const interpretarErro = (mensagem: string) => {
+    if (mensagem.includes("Quantidade insuficiente")) {
+      return { titulo: "Estoque insuficiente" };
+    }
+    if (mensagem.includes("Laboratório de origem e destino devem ser diferentes")) {
+      return { titulo: "Laboratórios inválidos" };
+    }
+    if (mensagem.includes("Estoque de origem não encontrado")) {
+      return { titulo: "Estoque não encontrado" };
+    }
+    return { titulo: "Erro ao salvar" };
+  };
+
   const handleSubmit = () => {
     if (!validarCabecalho()) return;
 
@@ -107,10 +120,8 @@ export function ConfirmarMovimentacao({
     try {
       setLoading(true);
 
-      
       await MovimentacaoService.novaMovimentacao(payload as any);
 
-      
       if (id) {
         await SolicitacaoService.concluir(Number(id));
       }
@@ -129,16 +140,24 @@ export function ConfirmarMovimentacao({
         error?.message ||
         "Erro inesperado ao processar a movimentação.";
 
-      const erroEstoque = mensagem.includes("Quantidade insuficiente");
+      const html = error?.response?.data;
+      if (typeof html === "string" && html.includes("RuntimeException")) {
+        const match = html.match(/RuntimeException:\s*([^<]+)/);
+        if (match && match[1]) {
+          mensagem = match[1].trim();
+        }
+      }
+
+      const { titulo } = interpretarErro(mensagem);
 
       toast.current?.show({
         severity: "error",
-        summary: erroEstoque ? "Estoque insuficiente" : "Erro ao salvar",
+        summary: titulo,
         detail: mensagem,
         life: 6000,
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // garante que destrava o botão
     }
   };
 

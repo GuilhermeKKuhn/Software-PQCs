@@ -57,14 +57,14 @@ export function ProdutoPage() {
     const orgaoLabels: Record<string, string> = {
       POLICIA_FEDERAL: "Polícia Federal",
       EXERCITO: "Exército",
-      POLICIA_MILITAR: "Policia Militar", 
+      POLICIA_CIVIL: "Policia Civil", 
     };
   
   const columns = [
     { field: "nome", header: "Produto Químico", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'left' as const} },
     { field: "cas", header: "CAS", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'left' as const} },
-    { field: "estadoFisico", header: "Estado Físico", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
-    { field: "caracteristica", header: "Característica", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
+    { field: "concentracao", header: "Concentração", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
+    { field: "densidade", header: "Densidade", headerStyle: { textAlign: 'center' as const}, bodyStyle: { textAlign: 'center' as const} },
     {
       field: "orgaos",
       header: "Órgãos Controladores",

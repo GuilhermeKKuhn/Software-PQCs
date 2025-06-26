@@ -103,7 +103,7 @@ export function EstoquePage() {
           <SearchBar
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar produto, CAS, densidade..."
+            placeholder="Buscar produto"
           />
         }
         right={
